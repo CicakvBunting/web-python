@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gunsen: Toshi Ranbo Companion</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #25231f;
+      --muted: #726d64;
+      --paper: #f5f2ec;
+      --line: #e6e0d6;
+      --attacker: #a83f3b;
+      --defender: #3b6684;
+      --gold: #b88d43;
+    }
+    body {
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(184, 141, 67, .10), transparent 25rem),
+        radial-gradient(circle at 95% 16%, rgba(59, 102, 132, .10), transparent 28rem),
+        var(--paper);
+    }
+    .navbar { background: #24231f !important; }
+    .navbar-brand { font-weight: 700; letter-spacing: .01em; }
+    main.container { max-width: 1120px; padding-bottom: 3rem; }
+    .nav-pills { gap: .5rem; }
+    .nav-pills .nav-link {
+      padding: .65rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .nav-pills .nav-link.active {
+      border-color: #24231f;
+      background-color: #24231f;
+      box-shadow: 0 5px 14px rgba(36,35,31,.15);
+    }
+    .card {
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid var(--line) !important;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(44, 39, 31, .08) !important;
+    }
+    .battle-card .card-header {
+      padding: 1.25rem 1.5rem;
+      border: 0;
+      background: linear-gradient(115deg, #7e302f, #b64d43 58%, #cb7652);
+    }
+    .battle-kicker {
+      margin-bottom: .35rem;
+      color: rgba(255,255,255,.78);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .battle-card .card-header h2 { font-size: 1.35rem; font-weight: 750; }
+    .battle-intro { max-width: 76ch; color: var(--muted); line-height: 1.6; }
+    .battle-side {
+      height: 100%;
+      padding: 1.15rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    .battle-side.attacker { border-top: 4px solid var(--attacker); }
+    .battle-side.defender { border-top: 4px solid var(--defender); }
+    .side-title {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      margin-bottom: 1rem;
+      font-weight: 750;
+      font-size: 1.05rem;
+    }
+    .side-mark {
+      display: grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: 9px;
+      color: white;
+      font-size: .85rem;
+    }
+    .attacker .side-mark { background: var(--attacker); }
+    .defender .side-mark { background: var(--defender); }
+    .battle-side .form-label { margin-bottom: .35rem; font-size: .88rem; font-weight: 650; }
+    .battle-side .form-control {
+      min-height: 46px;
+      border-color: #d9d4cb;
+      border-radius: 9px;
+      font-variant-numeric: tabular-nums;
+    }
+    .battle-side .form-control:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 .2rem rgba(184,141,67,.16);
+    }
+    .battle-side .form-text { color: var(--muted); line-height: 1.4; }
+    .stat-section {
+      padding: .8rem;
+      border: 1px solid #eee9e0;
+      border-radius: 10px;
+      background: #fcfbf9;
+    }
+    .stat-section + .stat-section { margin-top: .8rem; }
+    .stat-section-title {
+      margin-bottom: .65rem;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 750;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .battle-details {
+      padding: .75rem .8rem;
+      border: 1px solid #eee9e0;
+      border-radius: 10px;
+      background: #fcfbf9;
+    }
+    .battle-details + .battle-details { margin-top: .65rem; }
+    .battle-details summary { cursor: pointer; font-weight: 650; }
+    .battle-details[open] summary { margin-bottom: .8rem; }
+    .battle-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      margin-top: .75rem;
+      padding: .7rem .8rem;
+      border-radius: 10px;
+      background: #f4f1eb;
+      font-size: .88rem;
+    }
+    .battle-total strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+    .survival-box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #faf9f6;
+    }
+    .battle-submit {
+      min-height: 48px;
+      border: 0;
+      border-radius: 10px;
+      background: #282722;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+    .battle-submit:hover { background: #444138; }
+    .battle-result {
+      border: 0;
+      border-radius: 12px;
+      line-height: 1.55;
+    }
+    .battle-result .result-totals {
+      padding-bottom: .75rem;
+      margin-bottom: .75rem;
+      border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+    .rules-note { color: var(--muted); line-height: 1.55; }
+    @media (max-width: 575.98px) {
+      main.container { padding-right: 1rem; padding-left: 1rem; }
+      .nav-pills { gap: .35rem; }
+      .nav-pills .nav-link { padding: .55rem .75rem; font-size: .88rem; }
+      .battle-card .card-header { padding: 1rem 1.1rem; }
+      .battle-card .card-body { padding: 1rem; }
+      .battle-side { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+  <div class="container-fluid">
+    <span class="navbar-brand mb-0 h1">🏯 Gunsen: Battle Companion</span>
+    <div class="d-flex gap-2">
+      {% if is_authenticated %}
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('index') }}">Budget app</a>
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Sign out</a>
+      {% else %}
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Budget app sign in</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <ul class="nav nav-pills mb-4 justify-content-center" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if active_tab == 'calc' %}active{% endif %}" id="pills-calc-tab" data-bs-toggle="pill"
+              data-bs-target="#pills-calc" type="button" role="tab">⚔️ Battle Calculator</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if active_tab == 'achieve' %}active{% endif %}" id="pills-achieve-tab" data-bs-toggle="pill"
+              data-bs-target="#pills-achieve" type="button" role="tab">🚩 Achievement Tracker</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="pills-rules-tab" data-bs-toggle="pill"
+              data-bs-target="#pills-rules" type="button" role="tab">📜 Rules Reference</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="pills-tabContent">
+    <section class="tab-pane fade {% if active_tab == 'calc' %}show active{% endif %}" id="pills-calc" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="card battle-card">
+            <div class="card-header bg-danger text-white">
+              <div class="battle-kicker">Battle resolution</div>
+              <h2 class="mb-0">Advanced Skirmish Calculator</h2>
+            </div>
+            <div class="card-body">
+              <p class="battle-intro small mb-4">
+                Enter the starting battle stats for each side. Add any numeric hero bonuses and the results
+                from kept dice; the calculator totals Strength, estimates kills, and applies the battle result rules.
+              </p>
+              <form method="POST">
+                <input type="hidden" name="form_type" value="battle">
+                <div class="row g-3 mb-3">
+                  <div class="col-lg-6">
+                    <div class="battle-side attacker">
+                    <h3 class="side-title"><span class="side-mark" aria-hidden="true">⚔</span>Attacker</h3>
+                    <div class="stat-section">
+                      <div class="stat-section-title">Starting battle stats</div>
+                      <div class="row g-2">
+                      {% for stat, label, help in [
+                        ("troops", "Troops", "Troops in this battle."),
+                        ("strength", "Strength", "Initial Strength from troops, board, cards, and other effects."),
+                        ("blood", "Blood", "Initial Blood before hero and battle-die effects."),
+                        ("armor", "Armor", "Initial Armor before hero and battle-die effects.")
+                      ] %}
+                      <div class="col-sm-6 mb-2">
+                        <label class="form-label" for="atk_base_{{ stat }}">{{ label }}</label>
+                        <input id="atk_base_{{ stat }}" type="number" min="0" step="1" class="form-control"
+                               name="atk_base_{{ stat }}" value="{{ battle_inputs['atk_base_' ~ stat] }}" required>
+                        <div class="form-text">{{ help }}</div>
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </div>
+                    <details class="battle-details mt-3">
+                      <summary>Hero effects</summary>
+                      <p class="form-text mt-2">Enter the numeric effects shown by the hero in this battle. Different heroes have different abilities; no generic hero bonus is assumed.</p>
+                      <div class="row g-2">
+                      {% for stat, label in [("strength", "Strength"), ("blood", "Blood"), ("armor", "Armor")] %}
+                      <div class="col-4">
+                        <label class="form-label" for="atk_hero_{{ stat }}">{{ label }} modifier</label>
+                        <input id="atk_hero_{{ stat }}" type="number" step="1" class="form-control"
+                               name="atk_hero_{{ stat }}" value="{{ battle_inputs['atk_hero_' ~ stat] }}">
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </details>
+                    <details class="battle-details mt-2">
+                      <summary>Kept battle-die results</summary>
+                      <p class="form-text mt-2">Defender rolls first. Enter the icons from the dice kept after permitted rerolls; each side rolls up to 6 dice.</p>
+                      <div class="row g-2">
+                      {% for stat, label in [("strength", "Strength"), ("blood", "Blood"), ("armor", "Armor")] %}
+                      <div class="col-4">
+                        <label class="form-label" for="atk_dice_{{ stat }}">{{ label }}</label>
+                        <input id="atk_dice_{{ stat }}" type="number" min="0" step="1" class="form-control"
+                               name="atk_dice_{{ stat }}" value="{{ battle_inputs['atk_dice_' ~ stat] }}">
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </details>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="battle-side defender">
+                    <h3 class="side-title"><span class="side-mark" aria-hidden="true">🛡</span>Defender</h3>
+                    <div class="stat-section">
+                      <div class="stat-section-title">Starting battle stats</div>
+                      <div class="row g-2">
+                      {% for stat, label, help in [
+                        ("troops", "Troops", "Troops in this battle."),
+                        ("strength", "Strength", "Initial Strength from troops, board, cards, and other effects."),
+                        ("blood", "Blood", "Initial Blood before hero and battle-die effects."),
+                        ("armor", "Armor", "Initial Armor before hero and battle-die effects.")
+                      ] %}
+                      <div class="col-sm-6 mb-2">
+                        <label class="form-label" for="def_base_{{ stat }}">{{ label }}</label>
+                        <input id="def_base_{{ stat }}" type="number" min="0" step="1" class="form-control"
+                               name="def_base_{{ stat }}" value="{{ battle_inputs['def_base_' ~ stat] }}" required>
+                        <div class="form-text">{{ help }}</div>
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </div>
+                    <details class="battle-details mt-3">
+                      <summary>Hero effects</summary>
+                      <p class="form-text mt-2">Enter the numeric effects shown by the hero in this battle. Different heroes have different abilities; no generic hero bonus is assumed.</p>
+                      <div class="row g-2">
+                      {% for stat, label in [("strength", "Strength"), ("blood", "Blood"), ("armor", "Armor")] %}
+                      <div class="col-4">
+                        <label class="form-label" for="def_hero_{{ stat }}">{{ label }} modifier</label>
+                        <input id="def_hero_{{ stat }}" type="number" step="1" class="form-control"
+                               name="def_hero_{{ stat }}" value="{{ battle_inputs['def_hero_' ~ stat] }}">
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </details>
+                    <details class="battle-details mt-2">
+                      <summary>Kept battle-die results</summary>
+                      <p class="form-text mt-2">Enter the icons from the dice kept after permitted rerolls; each side rolls up to 6 dice.</p>
+                      <div class="row g-2">
+                      {% for stat, label in [("strength", "Strength"), ("blood", "Blood"), ("armor", "Armor")] %}
+                      <div class="col-4">
+                        <label class="form-label" for="def_dice_{{ stat }}">{{ label }}</label>
+                        <input id="def_dice_{{ stat }}" type="number" min="0" step="1" class="form-control"
+                               name="def_dice_{{ stat }}" value="{{ battle_inputs['def_dice_' ~ stat] }}">
+                      </div>
+                      {% endfor %}
+                      </div>
+                    </details>
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-dark battle-submit w-100 py-2">Calculate Battle Result</button>
+              </form>
+              {% if battle_result is not none %}
+              <div class="alert {{ alert_class }} battle-result mt-4 mb-0" role="status">
+                {% if battle_totals %}
+                <div class="result-totals d-flex justify-content-around flex-wrap gap-3 fw-bold text-center">
+                  <span>Attacker Strength <strong>{{ battle_totals.atk.strength }}</strong></span>
+                  <span>Defender Strength <strong>{{ battle_totals.def.strength }}</strong></span>
+                </div>
+                <div class="row g-2 mb-3">
+                  {% for side, name in [("atk", "Attacker"), ("def", "Defender")] %}
+                  <div class="col-md-6">
+                    <div class="p-3 bg-white bg-opacity-50 rounded">
+                      <strong>{{ name }} battle stats</strong>
+                      <div class="small mt-2">Blood {{ battle_totals[side].blood }} · Armor {{ battle_totals[side].armor }}</div>
+                      <div class="small">Estimated kills: {{ battle_totals[side].kills }} · Troops remaining: {{ battle_totals[side].remaining }}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+                <div class="text-center fw-bold">
+                {{ battle_result }}
+                </div>
+              </div>
+              {% endif %}
+              <p class="rules-note small mt-3 mb-0">
+                Battle sequence and outcomes follow the
+                <a href="https://en.boardgamearena.com/gamepanel?game=gunsen" target="_blank" rel="noopener noreferrer">Gunsen rules summary</a>.
+                Kill estimate: max(0, your total Blood − opponent's total Armor), capped at the opponent's troops.
+                The summary confirms Blood kills and Armor prevents kills, but not the full casualty formula. Hero abilities are entered manually; unique effects and rerolls must be resolved using the printed card/rules.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-pane fade {% if active_tab == 'achieve' %}show active{% endif %}" id="pills-achieve" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark">
+              <h2 class="h5 mb-0">Race to 7 Achievements Tracker</h2>
+            </div>
+            <div class="card-body">
+              <p class="text-muted small">Check off achievements as you earn them. First player to reach <strong>7</strong> wins immediately!</p>
+              <form method="POST">
+                <input type="hidden" name="form_type" value="achievements">
+                <div class="list-group mb-3">
+                  {% set achievements_list = [
+                    ("ach_atk_1", "Win a Battle as Attacker (1st time)"),
+                    ("ach_atk_2", "Win a Battle as Attacker (2nd time)"),
+                    ("ach_goal_1", "Complete 1st Clan Goal Card"),
+                    ("ach_goal_2", "Complete 2nd Clan Goal Card"),
+                    ("ach_buildings", "Build Both Buildings (2 total)"),
+                    ("ach_tactics", "Buy 3 Tactics Cards"),
+                    ("ach_shrines", "Control 2 Shrine Territories Simultaneously"),
+                    ("ach_toshi_gain", "Gain Control of Toshi Ranbo (Initial capture)"),
+                    ("ach_villages", "Have 3 Village Tokens on your Clan Board"),
+                    ("ach_nobles", "Use all 3 Noble Actions")
+                  ] %}
+                  {% for key, label in achievements_list %}
+                  <label class="list-group-item d-flex align-items-center">
+                    <input class="form-check-input me-3" type="checkbox" name="{{ key }}"
+                           {% if achievements.get(key) %}checked{% endif %}>
+                    <span class="flex-grow-1">{{ label }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-3">
+                  <span class="fw-bold">Total Checked: <span class="text-danger">{{ total_checked }}</span> / 7</span>
+                  <button type="submit" class="btn btn-warning fw-bold text-dark px-4">Update Tracker</button>
+                </div>
+                {% if total_checked >= 7 %}
+                <div class="alert alert-success mb-0" role="status"><strong>Victory!</strong> Seven achievements reached.</div>
+                {% endif %}
+              </form>
+              <p class="text-muted small mt-3 mb-0">Achievement checks are temporary and are not saved to the budget database. 'Maintain Control of Toshi Ranbo' can fluctuate live on the board depending on troop placement.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-pane fade" id="pills-rules" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="card shadow-sm border-dark">
+            <div class="card-header bg-dark text-white">
+              <h2 class="h5 mb-0">Quick Turn Structure &amp; Reminders</h2>
+            </div>
+            <div class="card-body">
+              <h3 class="h6 fw-bold text-dark">Turn Sequence</h3>
+              <ol class="mb-3">
+                <li><strong>Choose Order Card:</strong> Take one face-up card from the row (paying resource cost if applicable).</li>
+                <li><strong>Place Order Card:</strong> Place it in a matching column on your board OR place face-down for a Noble Action.</li>
+                <li><strong>Activate Column / Noble Action:</strong> Activate <em>all</em> cards in that column top-to-bottom, OR pay Influence for a Noble Action.</li>
+                <li><strong>Resolve Battle:</strong> If movement entered an opponent territory, resolve combat.</li>
+                <li><strong>End Turn:</strong> Refill the order row to 5 cards.</li>
+              </ol>
+              <hr>
+              <h3 class="h6 fw-bold text-dark">Frequently Overlooked Rules</h3>
+              <ul class="mb-0">
+                <li><strong>Heroes:</strong> Must always stay with an army or at your fort. They do not count toward the 5-troop limit and cannot be permanently lost.</li>
+                <li><strong>Column Compounding:</strong> Every time you add a card to a column, you activate every card above it. Building tall creates massive mid-game swing turns!</li>
+                <li><strong>Row Clearing:</strong> Before drafting, you may optionally clear all 5 cards if 4 or more share the same color or resource cost.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

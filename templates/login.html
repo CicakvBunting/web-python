@@ -72,6 +72,7 @@ button:active{transform:translateY(1px)}
       <input id="lp" name="password" type="password" autocomplete="current-password">
       <button type="submit">Sign in</button>
       <div class="links">
+        <a class="link" href="{{ url_for('gunsen') }}">Use Gunsen companion (no sign in)</a>
         <button type="button" class="link" onclick="show('register')">New here? Create an account</button>
         <button type="button" class="link" onclick="show('reset')">Forgot password? Reset it</button>
         <button type="button" class="link" onclick="show('clip')">Clipboard antar-device</button>

@@ -377,6 +377,7 @@ select{cursor:pointer}
     <div class="period-flag">Viewing<b id="flag">—</b>
       <div class="hdr-actions">
         {% if is_admin %}<button class="btn ghost sm" id="tokenLink" title="Admin only: view or change the token new users must enter to register an account.">Reg. token</button>{% endif %}
+        <a class="btn ghost sm" href="{{ url_for('gunsen') }}">Gunsen companion</a>
         <button class="btn ghost sm" id="signOutBtn" onclick="location.href='/logout'" title="Sign out of your account.">Sign out</button>
       </div>
     </div>

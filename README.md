@@ -14,6 +14,13 @@ months (Sept 2025 – June 2026) are pre-loaded on first run.
 - Password sign-in, plus a **master-phrase reset**: on the login page, "Forgot
   password?" lets you set a new password by entering the master phrase
   (default `open sesame`, configurable via `BUDGET_MASTER`).
+- A public **Gunsen companion** page with a rule-informed battle strength
+  calculator, a temporary achievement tracker, and a quick rules reference.
+  The calculator sums base, hero, and kept-die stats, estimates kills from
+  Blood versus Armor, and applies the documented battle result rules. Since the
+  accessible rules summary doesn't provide the complete casualty formula or
+  individual hero abilities, those estimates and numeric hero effects must be
+  checked against the printed game materials.
 
 ---
 
@@ -29,6 +36,11 @@ python app.py
 
 Open **http://127.0.0.1:5000**. Default local password is `changeme`
 (set `BUDGET_PASSWORD` to change it).
+
+Open **http://127.0.0.1:5000/gunsen** to use the battle calculator, achievement
+tracker, and rules reference without signing in. Achievement checks are kept in
+the signed session only; they are not stored in the budget database. The
+dashboard header also links to the companion when you're signed in.
 
 To open from your **phone on the same Wi-Fi**: the local server already listens
 on all interfaces, so find your computer's IP (e.g. `192.168.1.20`) and open

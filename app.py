@@ -578,6 +578,136 @@ def index():
                            username=current_user(), is_admin=(current_user() == ADMIN_USER))
 
 
+GUNSEN_ACHIEVEMENTS = (
+    "ach_atk_1", "ach_atk_2", "ach_goal_1", "ach_goal_2",
+    "ach_buildings", "ach_tactics", "ach_shrines", "ach_toshi_gain",
+    "ach_villages", "ach_nobles",
+)
+
+
+@app.route("/gunsen", methods=["GET", "POST"])
+def gunsen():
+    """Public battle calculator, achievement tracker, and rules reference."""
+    battle_result = None
+    alert_class = "alert-info"
+    active_tab = "calc"
+    battle_winner = None
+    stat_names = ("troops", "strength", "blood", "armor")
+    source_names = ("base", "hero", "dice")
+    battle_inputs = {
+        f"{side}_{source}_{stat}": request.form.get(
+            f"{side}_{source}_{stat}", "0")
+        for side in ("atk", "def")
+        for source in source_names
+        for stat in stat_names
+        if not (source != "base" and stat == "troops")
+    }
+    battle_totals = None
+    achievements = session.get("gunsen_achievements", {})
+
+    if request.method == "POST":
+        if request.form.get("form_type") == "battle":
+            active_tab = "calc"
+            try:
+                values = {key: int(value) for key, value in battle_inputs.items()}
+                if any(value < 0 for key, value in values.items()
+                       if "_hero_" not in key):
+                    raise ValueError
+                battle_totals = {}
+                for side in ("atk", "def"):
+                    troops = values[f"{side}_base_troops"]
+                    stats = {
+                        stat: sum(
+                            values.get(f"{side}_{source}_{stat}", 0)
+                            for source in source_names
+                        )
+                        for stat in ("strength", "blood", "armor")
+                    }
+                    if any(total < 0 for total in stats.values()):
+                        raise ValueError
+                    battle_totals[side] = {"troops": troops, **stats}
+
+                battle_totals["atk"]["kills"] = min(
+                    battle_totals["def"]["troops"],
+                    max(0, battle_totals["atk"]["blood"] - battle_totals["def"]["armor"]),
+                )
+                battle_totals["def"]["kills"] = min(
+                    battle_totals["atk"]["troops"],
+                    max(0, battle_totals["def"]["blood"] - battle_totals["atk"]["armor"]),
+                )
+                battle_totals["atk"]["remaining"] = (
+                    battle_totals["atk"]["troops"] - battle_totals["def"]["kills"]
+                )
+                battle_totals["def"]["remaining"] = (
+                    battle_totals["def"]["troops"] - battle_totals["atk"]["kills"]
+                )
+                attacker_total = battle_totals["atk"]["strength"]
+                defender_total = battle_totals["def"]["strength"]
+                if attacker_total > defender_total:
+                    if battle_totals["atk"]["remaining"] > 0:
+                        battle_winner = "attacker"
+                        battle_result = (
+                            "Attacker wins: take control of the territory and earn a "
+                            "Battle Achievement. The defender retreats."
+                        )
+                        alert_class = "alert-success"
+                    else:
+                        battle_result = (
+                            "The attacker has higher Strength, but no attacker troop "
+                            "survives the estimated casualties. The attacker cannot "
+                            "claim the territory or Battle Achievement."
+                        )
+                        alert_class = "alert-warning"
+                elif attacker_total < defender_total:
+                    battle_winner = "defender"
+                    battle_result = (
+                        "Defender wins. The attacker retreats; the defender does not "
+                        "earn a Battle Achievement."
+                    )
+                    alert_class = "alert-primary"
+                else:
+                    battle_result = "Tie: the attacker gets nothing; the defender retreats."
+                    alert_class = "alert-warning"
+            except ValueError:
+                battle_totals = None
+                battle_result = (
+                    "Use whole numbers. Troops, base stats, and dice results must be "
+                    "non-negative, and final Strength/Blood/Armor totals cannot be negative."
+                )
+                alert_class = "alert-secondary"
+
+            if battle_winner == "attacker":
+                battle_result += (
+                    " The attacker has surviving troops; if the defender has a "
+                    "Village Token, the attacker steals one and gains its resource."
+                )
+            elif battle_winner == "defender" and battle_totals["def"]["remaining"] > 0:
+                battle_result += (
+                    " The defender has surviving troops; if the attacker has a "
+                    "Village Token, the defender steals one and gains its resource."
+                )
+        elif request.form.get("form_type") == "achievements":
+            active_tab = "achieve"
+            achievements = {
+                key: request.form.get(key) == "on"
+                for key in GUNSEN_ACHIEVEMENTS
+            }
+            session["gunsen_achievements"] = achievements
+
+    total_checked = sum(bool(achievements.get(key)) for key in GUNSEN_ACHIEVEMENTS)
+    return render_template(
+        "gunsen.html",
+        battle_result=battle_result,
+        alert_class=alert_class,
+        battle_inputs=battle_inputs,
+        battle_totals=battle_totals,
+        achievements=achievements,
+        total_checked=total_checked,
+        active_tab=active_tab,
+        is_authenticated=bool(current_user()),
+    )
+
+
 @app.route("/api/periods")
 @login_required
 def periods():
