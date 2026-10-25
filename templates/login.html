@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Bulanan — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F2EDE3;--ink:#23201A;--ink-soft:#6B6354;--line:#D7CDB9;--accent:#9A5B34;--red:#9A3B34;--red-bg:#F0DED4;--green:#4A6B47;--green-bg:#E4EAD9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:22px;
+  background-image:
+    radial-gradient(rgba(74,107,71,.22) 1px, transparent 1.4px),
+    radial-gradient(rgba(58,85,96,.18) 1px, transparent 1.4px);
+  background-size:22px 22px, 22px 22px; background-position:0 0, 11px 11px}
+.box{width:100%;max-width:360px;background:#FBF8F1;border:1px solid var(--line);border-radius:14px;
+  padding:30px 26px;box-shadow:0 2px 18px rgba(60,48,30,.09)}
+h1{font-family:'Fraunces',serif;font-weight:900;font-size:30px;line-height:.95;letter-spacing:-.01em}
+.sub{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin:7px 0 24px}
+label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px;margin-top:13px}
+label:first-of-type{margin-top:0}
+input{width:100%;font:inherit;font-size:16px;padding:12px 13px;border:1px solid var(--line);
+  background:#fff;border-radius:9px;color:var(--ink)}
+input:focus{outline:none;border-color:var(--accent)}
+button{width:100%;font:inherit;font-weight:600;font-size:16px;margin-top:18px;padding:12px;
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:9px;cursor:pointer}
+button:active{transform:translateY(1px)}
+.err{background:var(--red-bg);color:var(--red);font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:16px}
+.notice{background:var(--green-bg);color:var(--green);font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:16px}
+.link{display:block;text-align:center;margin-top:14px;font-size:13px;color:var(--accent);cursor:pointer;background:none;border:none;width:100%;text-decoration:underline}
+.hide{display:none}
+.links{margin-top:16px;display:flex;flex-direction:column;gap:2px}
+.cliphelp{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
+.clipwarn{color:var(--accent)}
+#clipForm label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 5px}
+#clipForm input[type=text]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);box-sizing:border-box}
+#clipForm input[type=text]:focus,#clipForm textarea:focus{outline:none;border-color:var(--accent)}
+.clipmsg{font-size:12.5px;margin:10px 0 0;min-height:1em}
+.clipmsg.ok{color:var(--green)}
+.clipmsg.err{color:var(--red)}
+.clipbtns{display:flex;gap:8px;margin-top:12px}
+.clipbtns button{flex:1;font:inherit;font-size:14px;font-weight:600;padding:10px;border-radius:9px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;transition:transform .12s,box-shadow .15s}
+.clipbtns button:hover{box-shadow:0 4px 14px rgba(60,48,30,.16)}
+.clipbtns button:active{transform:scale(.97)}
+.clipbtns .ghostbtn{background:transparent;color:var(--ink);border-color:var(--line)}
+.clipbtns .ghostbtn:hover{border-color:var(--accent);color:var(--accent)}
+.bg-fx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.bg-fx .blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;will-change:transform}
+.bg-fx .b1{width:46vw;height:46vw;background:#BFD6C4;top:-10vw;left:-8vw;animation:drift1 26s ease-in-out infinite}
+.bg-fx .b2{width:40vw;height:40vw;background:#B6CEDD;bottom:-12vw;right:-6vw;animation:drift2 32s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,5vh) scale(1.12)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,-4vh) scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.bg-fx .blob{animation:none !important}}
+.box{position:relative;z-index:1}
+</style>
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span></div>
+  <div class="box">
+    <h1>Budget Bulanan</h1>
+    <div class="sub">Plan ledger</div>
+    {% if error %}<div class="err">{{ error }}</div>{% endif %}
+    {% if notice %}<div class="notice">{{ notice }}</div>{% endif %}
+
+    <!-- SIGN IN -->
+    <form id="loginForm" method="POST" action="/login" class="{% if show_register or show_reset %}hide{% endif %}">
+      <label for="lu">Username</label>
+      <input id="lu" name="username" type="text" autocomplete="username" autocapitalize="none" autofocus>
+      <label for="lp">Password</label>
+      <input id="lp" name="password" type="password" autocomplete="current-password">
+      <button type="submit">Sign in</button>
+      <div class="links">
+        <button type="button" class="link" onclick="show('register')">New here? Create an account</button>
+        <button type="button" class="link" onclick="show('reset')">Forgot password? Reset it</button>
+        <button type="button" class="link" onclick="show('clip')">Clipboard antar-device</button>
+      </div>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" method="POST" action="/register" class="{% if not show_register %}hide{% endif %}">
+      <label for="ru">Choose a username</label>
+      <input id="ru" name="username" type="text" autocomplete="username" autocapitalize="none" placeholder="3–20 letters/numbers">
+      <label for="rp">Choose a password</label>
+      <input id="rp" name="password" type="password" autocomplete="new-password" placeholder="At least 4 characters">
+      <label for="rt">Registration token</label>
+      <input id="rt" name="token" type="password" autocomplete="off" placeholder="Ask the admin for this">
+      <button type="submit">Create account</button>
+      <button type="button" class="link" onclick="show('login')">Back to sign in</button>
+    </form>
+
+    <!-- RESET -->
+    <form id="resetForm" method="POST" action="/reset-password" class="{% if not show_reset %}hide{% endif %}">
+      <label for="su">Username to reset</label>
+      <input id="su" name="username" type="text" autocomplete="username" autocapitalize="none">
+      <label for="phrase">Master phrase</label>
+      <input id="phrase" name="phrase" type="password" autocomplete="off" placeholder="Required to authorize reset">
+      <label for="np">New password</label>
+      <input id="np" name="new_password" type="password" autocomplete="new-password" placeholder="At least 4 characters">
+      <button type="submit">Set new password</button>
+      <button type="button" class="link" onclick="show('login')">Back to sign in</button>
+    </form>
+    <!-- CLIPBOARD (no login) -->
+    <div id="clipForm" class="hide">
+      <p class="cliphelp">Transfer teks antar perangkat. Masukkan kode, tulis/tempel teks, lalu <b>Simpan</b>. Di perangkat lain, masukkan kode yang sama lalu <b>Muat</b>. <br><span class="clipwarn">Jangan simpan data sensitif — siapa pun yang tahu kodenya bisa membacanya.</span></p>
+      <label for="clipCode">Kode</label>
+      <input id="clipCode" type="text" autocomplete="off" autocapitalize="none" placeholder="mis. catatan-saya">
+      <label for="clipText">Teks</label>
+      <textarea id="clipText" rows="6" placeholder="Tulis atau tempel teks di sini…" style="width:100%;font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);resize:vertical;box-sizing:border-box"></textarea>
+      <div id="clipMsg" class="clipmsg"></div>
+      <div class="clipbtns">
+        <button type="button" id="clipSave">Simpan</button>
+        <button type="button" id="clipLoad" class="ghostbtn">Muat</button>
+        <button type="button" id="clipCopy" class="ghostbtn">Copy</button>
+      </div>
+      <button type="button" class="link" onclick="show('login')">Kembali ke sign in</button>
+    </div>
+  </div>
+<script>
+function show(which){
+  document.getElementById('loginForm').classList.toggle('hide', which!=='login');
+  document.getElementById('registerForm').classList.toggle('hide', which!=='register');
+  document.getElementById('resetForm').classList.toggle('hide', which!=='reset');
+  document.getElementById('clipForm').classList.toggle('hide', which!=='clip');
+}
+
+(function(){
+  const codeEl=document.getElementById('clipCode');
+  const textEl=document.getElementById('clipText');
+  const msgEl=document.getElementById('clipMsg');
+  function msg(text, kind){ msgEl.textContent=text; msgEl.className='clipmsg '+(kind||''); }
+  document.getElementById('clipSave').addEventListener('click',async()=>{
+    const code=codeEl.value.trim();
+    if(!code){ msg('Masukkan kode dulu.','err'); return; }
+    msg('Menyimpan…','');
+    try{
+      const r=await fetch('/api/clip/save',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({code,content:textEl.value})});
+      const d=await r.json();
+      if(r.ok) msg('Tersimpan dengan kode "'+code+'".','ok');
+      else msg(d.error||'Gagal menyimpan.','err');
+    }catch(e){ msg('Gagal menyimpan. Cek koneksi.','err'); }
+  });
+  document.getElementById('clipLoad').addEventListener('click',async()=>{
+    const code=codeEl.value.trim();
+    if(!code){ msg('Masukkan kode dulu.','err'); return; }
+    msg('Memuat…','');
+    try{
+      const r=await fetch('/api/clip/load?code='+encodeURIComponent(code));
+      const d=await r.json();
+      if(r.ok){ textEl.value=d.content; msg('Teks dimuat (disimpan '+d.updated.replace('T',' ')+').','ok'); }
+      else msg(d.error||'Kode tidak ditemukan.','err');
+    }catch(e){ msg('Gagal memuat. Cek koneksi.','err'); }
+  });
+  document.getElementById('clipCopy').addEventListener('click',async()=>{
+    if(!textEl.value){ msg('Tidak ada teks untuk dicopy.','err'); return; }
+    try{
+      await navigator.clipboard.writeText(textEl.value);
+      msg('Teks disalin ke clipboard.','ok');
+    }catch(e){
+      // Fallback for older/insecure contexts.
+      textEl.select(); document.execCommand('copy');
+      msg('Teks disalin ke clipboard.','ok');
+    }
+  });
+})();
+</script>
+</body>
+</html>

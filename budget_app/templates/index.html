@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Bulanan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter+Tight:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2EDE3; --paper-2:#EAE3D5; --ink:#23201A; --ink-soft:#6B6354;
+  --line:#D7CDB9; --accent:#9A5B34; --accent-soft:#C98A5E;
+  --green:#4A6B47; --green-bg:#E4EAD9; --red:#9A3B34; --red-bg:#F0DED4;
+  --blue-bg:#DCE4E8; --gold-bg:#EFE3C8;
+  --shadow:0 1px 0 #FBF8F1, 0 2px 14px rgba(60,48,30,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',sans-serif; background:var(--paper); color:var(--ink);
+  font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(var(--line) .5px,transparent .5px); background-size:22px 22px}
+.mono{font-family:'Spline Sans Mono',monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px; margin:0 auto; padding:28px 22px 80px}
+
+header.top{display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap}
+.brand h1{font-family:'Fraunces',serif; font-weight:900; font-size:38px; line-height:.95; letter-spacing:-.01em}
+.brand .sub{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); margin-top:6px}
+.period-flag{font-family:'Fraunces',serif; font-weight:600; font-size:15px; text-align:right; color:var(--ink-soft)}
+.period-flag b{display:block; font-size:22px; color:var(--ink); font-weight:900}
+
+.controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  padding:14px 0 22px; border-bottom:1px solid var(--line); margin-bottom:26px}
+.controls label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft)}
+select,input[type=number],input[type=text]{font:inherit; padding:8px 11px; border:1px solid var(--line);
+  background:#FBF8F1; border-radius:7px; color:var(--ink)}
+select{cursor:pointer}
+.btn{font:inherit; font-weight:600; padding:8px 15px; border-radius:7px; cursor:pointer; border:1px solid var(--ink);
+  background:var(--ink); color:var(--paper); transition:transform .08s, background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent; color:var(--ink)}
+.btn.ghost:hover{background:var(--paper-2)}
+.btn.danger{border-color:var(--red); color:var(--red); background:transparent}
+.btn.danger:hover{background:var(--red-bg)}
+.btn.sm{padding:5px 10px; font-size:13px}
+.spacer{flex:1}
+.saveflag{font-size:13px; color:var(--ink-soft); min-width:118px}
+.saveflag.dirty{color:var(--accent); font-weight:600}
+.saveflag.ok{color:var(--green); font-weight:600}
+
+.salbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px;
+  background:#FBF8F1; border:1px solid var(--line); border-radius:11px; padding:12px 16px; box-shadow:var(--shadow)}
+.salbar label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft)}
+.salbar input{width:70px; text-align:center}
+.salbar .note{font-size:13px; color:var(--ink-soft)}
+.salbar .note b{color:var(--accent)}
+
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; margin-bottom:30px}
+.card{border:1px solid var(--line); border-radius:11px; padding:15px 16px; background:#FBF8F1; box-shadow:var(--shadow)}
+.card .k{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft)}
+.card .v{font-family:'Spline Sans Mono',monospace; font-weight:600; font-size:21px; margin-top:7px; letter-spacing:-.02em}
+.card.hl{background:var(--gold-bg); border-color:var(--accent-soft)} .card.hl .v{color:var(--accent)}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+@media(max-width:840px){.grid2{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#FBF8F1; box-shadow:var(--shadow)}
+.panel h2{font-family:'Fraunces',serif; font-weight:600; font-size:17px; padding:13px 17px; display:flex; justify-content:space-between; align-items:baseline}
+.panel.income h2{background:var(--green-bg); color:var(--green)}
+.panel.expense h2{background:var(--red-bg); color:var(--red)}
+.panel.wallet h2{background:var(--blue-bg); color:#3A5560}
+.panel h2 .tot{font-family:'Spline Sans Mono',monospace; font-size:15px; font-weight:600}
+
+.colhead{display:grid; gap:6px; padding:6px 17px; font-size:10px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-soft); border-top:1px solid var(--line); background:var(--paper-2)}
+.colhead.inc{grid-template-columns:1fr 140px 30px}
+.colhead.exp{grid-template-columns:1fr 120px 110px 96px 30px}
+.colhead span:not(:first-child){text-align:right}
+
+.row{display:grid; gap:6px; align-items:center; padding:6px 17px; border-top:1px solid var(--line)}
+.row.inc{grid-template-columns:1fr 140px 30px}
+.row.exp{grid-template-columns:1fr 120px 110px 96px 30px}
+.row .nameinp{border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 7px; font:inherit; font-size:14px; color:var(--ink); width:100%}
+.row .nameinp:hover{border-color:var(--line); background:#fff}
+.row .nameinp:focus{outline:none; border-color:var(--accent); background:#fff}
+.row input.num{width:100%; text-align:right; border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 7px;
+  font-family:'Spline Sans Mono',monospace; font-size:14px; color:var(--ink)}
+.row input.num:hover{border-color:var(--line); background:#fff}
+.row input.num:focus{outline:none; border-color:var(--accent); background:#fff}
+.row .daily{font-family:'Spline Sans Mono',monospace; font-size:12px; text-align:right; color:var(--green); line-height:1.15}
+.row .daily.over{color:var(--red)}
+.row .daily small{display:block; font-size:9px; letter-spacing:.04em; color:var(--ink-soft); text-transform:uppercase}
+.row .del{border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:17px; line-height:1; padding:4px; border-radius:6px}
+.row .del:hover{color:var(--red); background:var(--red-bg)}
+.addrow{padding:10px 17px; border-top:1px solid var(--line)}
+.readonly{font-family:'Spline Sans Mono',monospace; font-size:14px; text-align:right; color:var(--ink-soft)}
+.walrow{display:grid; grid-template-columns:1fr 140px; align-items:center; padding:7px 17px; border-top:1px solid var(--line)}
+
+/* rotating savings message */
+.savemsg{background:linear-gradient(100deg,var(--green-bg),var(--gold-bg)); border:1px solid var(--line);
+  border-radius:11px; padding:13px 18px; margin-bottom:18px; font-family:'Fraunces',serif; font-style:italic;
+  font-size:15px; color:var(--green); text-align:center; transition:opacity .25s ease; min-height:46px;
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow)}
+
+/* expense name cell holds the name input + category dropdown */
+.namecell{display:flex; flex-direction:column; gap:3px; min-width:0}
+.tagrow{display:flex; gap:5px; flex-wrap:wrap}
+.walsel{font:inherit; font-size:10px; padding:1px 4px; border:1px solid var(--line); border-radius:5px;
+  background:var(--blue-bg); color:#3A5560; cursor:pointer; max-width:120px; letter-spacing:.02em}
+.walsel:focus{outline:none; border-color:var(--accent)}
+.mlab{display:none}
+.catsel{font:inherit; font-size:10px; padding:1px 4px; border:1px solid var(--line); border-radius:5px;
+  background:var(--paper-2); color:var(--ink-soft); cursor:pointer; width:fit-content; letter-spacing:.04em; text-transform:uppercase}
+.catsel.ov{background:var(--gold-bg); color:var(--accent); border-color:var(--accent-soft); font-weight:600}
+.catsel:focus{outline:none; border-color:var(--accent)}
+
+/* locked nabung row */
+.row.nabung{background:var(--green-bg)}
+.row.nabung.neg{background:var(--red-bg)}
+.row .lockname{font-size:14px; font-weight:600; color:var(--green); display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.row.nabung.neg .lockname{color:var(--red)}
+.row .lockname small{font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); font-weight:500; margin-left:4px}
+.row .nbval{font-weight:600; color:var(--green)}
+.row.nabung.neg .nbval{color:var(--red)}
+.row .rate{font-family:'Spline Sans Mono',monospace; font-size:12px; text-align:right; color:var(--green); line-height:1.15}
+.row.nabung.neg .rate{color:var(--red)}
+.row .rate small{display:block; font-size:9px; letter-spacing:.04em; color:var(--ink-soft); text-transform:uppercase}
+
+/* budgeting rules panel */
+.rulesbody{padding:16px 17px 18px}
+.rulehd{font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:8px}
+.rulehd .mono{font-size:12px; color:var(--ink-soft); font-weight:400}
+.ruleactual{margin-bottom:6px}
+.rulebar{display:flex; height:13px; border-radius:7px; overflow:hidden; background:var(--paper-2); border:1px solid var(--line)}
+.rulebar .seg{display:block; height:100%}
+.seg.needs{background:#7C9A6E} .seg.wants{background:var(--accent-soft)} .seg.sav{background:#5B7F9A}
+.rulelegend{display:flex; gap:16px; margin-top:7px; font-size:11px; color:var(--ink-soft)}
+.rulelegend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:baseline}
+.rulelegend i.needs{background:#7C9A6E} .rulelegend i.wants{background:var(--accent-soft)} .rulelegend i.sav{background:#5B7F9A}
+.ruledivide{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin:16px 0 12px; padding-top:14px; border-top:1px solid var(--line)}
+.ruleitem{margin-bottom:13px}
+.ruleitem.fit{background:var(--gold-bg); margin:0 -10px 13px; padding:9px 10px; border-radius:8px}
+.rulename{font-size:13px; font-weight:600; margin-bottom:6px}
+.rulename small{font-weight:500; color:var(--accent); text-transform:none; letter-spacing:0; font-size:11px}
+.ruleblurb{font-size:12px; color:var(--ink-soft); margin-top:5px; line-height:1.4}
+
+.foot{margin-top:34px; font-size:12px; color:var(--ink-soft); text-align:center; line-height:1.7}
+.foot a{color:var(--accent)}
+.empty{padding:40px 18px; text-align:center; color:var(--ink-soft)}
+
+.modal-bg{position:fixed; inset:0; background:rgba(35,32,26,.4); display:none; align-items:center; justify-content:center; z-index:50}
+.modal-bg.show{display:flex}
+.modal{background:var(--paper); border:1px solid var(--ink); border-radius:14px; padding:24px; width:330px; box-shadow:0 20px 50px rgba(40,30,15,.3)}
+.modal h3{font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin-bottom:16px}
+.modal .field{margin-bottom:13px}
+.modal .field label{display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px}
+.modal select{width:100%}
+.modal .actions{display:flex; gap:9px; margin-top:18px}
+.modal .actions .btn{flex:1; justify-content:center; text-align:center}
+
+@media(max-width:560px){
+  .wrap{padding:18px 14px 60px}
+  .brand h1{font-size:30px}
+
+  /* Stack each expense into a roomy card. The row keeps its 5 children
+     (namecell, budget, spent, per-day, delete); we place them with grid areas
+     so the name spans the top and budget/spent sit side by side below. */
+  .colhead.exp{display:none}
+  .row.exp{
+    display:grid; padding:11px 13px 12px; gap:4px 10px; position:relative;
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:'name name' 'blab slab' 'budget spent' 'perday perday';
+  }
+  .row.exp .namecell{grid-area:name; flex-direction:row; align-items:center; gap:8px; padding-right:26px; margin-bottom:4px}
+  .row.exp .nameinp{flex:1; font-size:15px; font-weight:600; border-color:var(--line); background:#fff}
+  .row.exp .catsel{flex:none}
+  .row.exp .mlab{display:block; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); align-self:end}
+  .row.exp .mlab-b{grid-area:blab} .row.exp .mlab-s{grid-area:slab}
+  .row.exp .num[data-f=amount]{grid-area:budget}
+  .row.exp .num[data-f=spent]{grid-area:spent}
+  .row.exp .num{width:100%; border-color:var(--line); background:#fff; font-size:15px; padding:9px 10px; text-align:right}
+  .row.exp .daily{grid-area:perday; text-align:left !important; font-size:13px; padding-left:2px; margin-top:3px}
+  .row.exp .del{justify-self:end; align-self:start; position:absolute; top:10px; right:8px; font-size:20px}
+
+  /* nabung (locked) row */
+  .row.exp.nabung{grid-template-areas:'name name' 'nbval nbval' 'rate rate'}
+  .row.exp.nabung .lockname{grid-area:name}
+  .row.exp.nabung .nbval{grid-area:nbval; text-align:left; font-size:17px}
+  .row.exp.nabung .rate{grid-area:rate; text-align:left}
+  .row.exp.nabung .readonly:not(.nbval), .row.exp.nabung > span:empty, .row.exp.nabung .mlab{display:none}
+
+  .colhead.inc,.row.inc{grid-template-columns:1fr 110px 26px}
+  .row.inc input.num,.row.inc .nameinp{padding:8px 7px; font-size:15px; border-color:var(--line); background:#fff}
+  .card .v{font-size:18px}
+  .cards{grid-template-columns:1fr 1fr}
+  .btn{padding:10px 13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Budget Bulanan</h1><div class="sub">{{ username }}{% if is_admin %} · admin{% endif %} · plan ledger</div></div>
+    <div class="period-flag">Viewing<b id="flag">—</b>
+      <a href="/logout" style="font-size:12px;color:var(--accent);font-weight:500;letter-spacing:0;text-transform:none">Sign out</a>
+      {% if is_admin %}<a href="#" id="tokenLink" title="Admin only: view or change the token new users must enter to register an account." style="font-size:12px;color:var(--ink-soft);font-weight:500;letter-spacing:0;text-transform:none;margin-left:10px">Reg. token</a>{% endif %}
+    </div>
+  </header>
+
+  <div class="controls">
+    <label>Period</label>
+    <select id="periodSel" title="Pick which month to view or edit. The newest month opens by default."></select>
+    <button class="btn ghost" id="addBtn" title="Create a new month. You can start blank or copy the latest month's budgets.">+ New month</button>
+    <div class="spacer"></div>
+    <span class="saveflag" id="saveflag">All changes saved</span>
+    <button class="btn" id="saveBtn" title="Save all edits for this month to the database. Edits aren't stored until you click this.">Save changes</button>
+    <button class="btn danger" id="delBtn" title="Permanently delete the month you're viewing. This cannot be undone.">Delete</button>
+  </div>
+
+  <div id="body">
+    <div class="savemsg" id="saveMsg" aria-live="polite"></div>
+
+    <div class="salbar">
+      <label for="salDay">Payday (day of month)</label>
+      <input id="salDay" type="number" min="1" max="31" placeholder="–" title="The day of the month you get paid. Used to work out how many days are left until payday, so each expense can show a safe daily spend.">
+      <span class="note" id="salNote">Set your payday to get a daily spend recommendation per expense.</span>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="grid2">
+      <div class="panel income">
+        <h2 title="Money coming in this month. The total updates as you edit.">Income <span class="tot mono" id="incTot">—</span></h2>
+        <div class="colhead inc"><span title="What the income is (salary, bonus, etc.)">Source</span><span title="How much you expect to receive.">Amount</span><span></span></div>
+        <div id="incRows"></div>
+        <div class="addrow"><button class="btn ghost sm" id="addInc" title="Add a new income source (e.g. a bonus or side job).">+ Add income</button></div>
+      </div>
+      <div class="panel expense">
+        <h2 title="Money going out this month, including the auto-calculated savings (nabung).">Expenses <span class="tot mono" id="expTot">—</span></h2>
+        <div class="colhead exp"><span title="What the expense is.">Item</span><span title="How much you plan to spend on this.">Budget</span><span title="How much you've actually spent so far this month.">Spent</span><span title="Suggested daily limit for the rest of this item's budget until payday: (budget − spent) ÷ days left.">Per day</span><span></span></div>
+        <div id="expRows"></div>
+        <div class="addrow"><button class="btn ghost sm" id="addExp" title="Add a new expense line. Set its budget, and optionally tag it Need or Want.">+ Add expense</button></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:22px">
+      <div class="panel wallet">
+        <h2 title="How your budgeted money splits across your wallets/accounts. Set each expense's wallet with the dropdown on its row.">Wallet breakdown <span style="flex:1"></span><button class="btn ghost sm" id="editWallets" title="Add, rename, or remove wallets." style="margin-left:8px">Edit wallets</button> <span class="tot mono" id="walTot" style="margin-left:10px">—</span></h2>
+        <div id="walRows"></div>
+      </div>
+      <div class="panel">
+        <h2 style="background:var(--paper-2)" title="Money carried over from before this month, used to project your expected total savings.">Carry-over</h2>
+        <div class="walrow"><span title="Money you already had before this month started.">Uang sebelumnya</span><input class="num mono" id="uangSeb" type="text" inputmode="numeric" title="Your starting balance before this month. Edit it, then Save." style="border:1px solid var(--line);background:#fff;text-align:right;border-radius:6px;padding:6px 8px"></div>
+        <div class="walrow" style="border-top:1px solid var(--line)"><span style="color:var(--ink-soft)" title="What your savings should total after this month: carry-over plus this month's nabung.">Tabungan seharusnya</span><span class="readonly" id="tabRO">—</span></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:22px">
+      <h2 style="background:var(--gold-bg);color:var(--accent)" title="Compares how your money splits into Needs, Wants and Savings against well-known budgeting guidelines. Informational only — nothing is enforced.">Budgeting rules <span style="font-family:'Inter Tight';font-size:12px;font-weight:500;color:var(--ink-soft);letter-spacing:0">reference only</span></h2>
+      <div id="rulesBody" class="rulesbody"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Data lives in <span class="mono">budget.db</span>. Nabung is auto-calculated: income minus all other expenses.<br>
+    <a href="/logout">Sign out</a>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Add a new month</h3>
+    <div class="field"><label>Month</label><select id="mAddMonth"></select></div>
+    <div class="field"><label>Year</label><select id="mAddYear"></select></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:4px"
+           title="Start the new month pre-filled with the same budget items and amounts as your most recent month, so you don't re-type recurring expenses. Spent values reset to zero.">
+      <input type="checkbox" id="mDup" style="width:auto"> Copy budgets from the latest month
+    </label>
+    <div class="actions">
+      <button class="btn ghost" id="mCancel">Cancel</button>
+      <button class="btn" id="mCreate">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAVE_MESSAGES = {{ messages|tojson }};
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const fmt=n=>"Rp "+Math.round(n||0).toLocaleString("id-ID");
+const parse=s=>Number(String(s).replace(/[^\d-]/g,""))||0;
+let cur=null, dirty=false;
+
+function setDirty(d){dirty=d; const f=document.getElementById("saveflag");
+  if(d){f.textContent="Unsaved changes"; f.className="saveflag dirty";}
+  else{f.textContent="All changes saved"; f.className="saveflag";}}
+
+async function loadPeriods(sel){
+  const ps=(await (await fetch("/api/periods")).json()).slice().reverse(); // newest first
+  const s=document.getElementById("periodSel"); s.innerHTML="";
+  ps.forEach(p=>{const o=document.createElement("option");o.value=p.year+"-"+p.month;o.textContent=p.month_name+" "+p.year;s.appendChild(o);});
+  if(ps.length){ s.value=sel||s.value||(ps[0].year+"-"+ps[0].month); await loadData(); }
+  else { document.getElementById("body").innerHTML='<div class="empty">No months yet. Click “+ New month”.</div>'; }
+}
+
+async function loadData(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  cur=await (await fetch(`/api/data?year=${y}&month=${m}`)).json();
+  render(); setDirty(false);
+}
+
+function incRowHTML(it){
+  return `<div class="row inc">
+    <input class="nameinp" data-f="item" value="${(it.item||"").replace(/"/g,'&quot;')}" placeholder="name">
+    <input class="num" data-f="amount" value="${fmt(it.amount)}">
+    <button class="del" title="Remove">×</button></div>`;
+}
+function expRowHTML(it){
+  if(it.locked){
+    // Nabung — fixed, auto-calculated. Read-only, but its wallet is assignable.
+    const wl=(cur&&cur.wallets_list)||[];
+    const myWal=it.wallet||"";
+    const walOpts=wl.map(w=>`<option value="${w.replace(/"/g,'&quot;')}" ${w===myWal?'selected':''}>${w}</option>`).join("")
+      +`<option value="Other / unassigned" ${myWal==='Other / unassigned'||!wl.includes(myWal)?'selected':''}>Unassigned</option>`;
+    return `<div class="row exp nabung" data-locked="1" data-item="${(it.item||"").replace(/"/g,'&quot;')}" title="Nabung (savings) is calculated automatically: total income minus all other expenses. It can't be edited or deleted. If it turns red, your expenses exceed your income.">
+      <span class="lockname">${it.item} <small>auto</small>
+        <select class="walsel" data-f="wallet" title="Which wallet your savings go to.">${walOpts}</select>
+      </span>
+      <span class="readonly nbval">${fmt(it.amount)}</span>
+      <span class="readonly" style="color:var(--ink-soft)">—</span>
+      <span class="rate" title="Share of your income left as savings this month."></span>
+      <span></span></div>`;
+  }
+  const cat=it.cat||"wants";
+  const isOv=it.cat_override;
+  const wl=(cur&&cur.wallets_list)||[];
+  const myWal=it.wallet||"";
+  const walOpts=wl.map(w=>`<option value="${w.replace(/"/g,'&quot;')}" ${w===myWal?'selected':''}>${w}</option>`).join("")
+    +`<option value="Other / unassigned" ${myWal==='Other / unassigned'||!wl.includes(myWal)?'selected':''}>Unassigned</option>`;
+  return `<div class="row exp" data-item="${(it.item||"").replace(/"/g,'&quot;')}">
+    <div class="namecell">
+      <input class="nameinp" data-f="item" value="${(it.item||"").replace(/"/g,'&quot;')}" placeholder="name">
+      <div class="tagrow">
+        <select class="catsel ${isOv?'ov':''}" data-f="cat" title="Is this a Need or a Want? Auto-assigned, but you can change it. Applies to this item across all months and feeds the Budgeting rules panel.">
+          <option value="needs" ${cat==='needs'?'selected':''}>Need</option>
+          <option value="wants" ${cat==='wants'?'selected':''}>Want</option>
+        </select>
+        <select class="walsel" data-f="wallet" title="Which wallet/account this expense comes from. Feeds the Wallet breakdown. Applies to this item across all months.">
+          ${walOpts}
+        </select>
+      </div>
+    </div>
+    <input class="num" data-f="amount" value="${fmt(it.amount)}" placeholder="Budget">
+    <span class="mlab mlab-b">Budget</span>
+    <input class="num" data-f="spent" value="${fmt(it.spent)}" placeholder="Spent">
+    <span class="mlab mlab-s">Spent</span>
+    <span class="daily"></span>
+    <button class="del" title="Remove">×</button></div>`;
+}
+
+function render(){
+  document.getElementById("flag").textContent=cur.month_name+" "+cur.year;
+  document.getElementById("salDay").value=cur.salary_day||"";
+  document.getElementById("incRows").innerHTML=cur.income.map(incRowHTML).join("");
+  document.getElementById("expRows").innerHTML=cur.expense.map(expRowHTML).join("");
+  document.getElementById("walRows").innerHTML="";
+  document.getElementById("uangSeb").value=fmt(cur.summary["Uang Sebelumnya"]);
+  const defs=[["Total Pemasukan",0],["Total Pengeluaran",0],["Total Terpakai",0],["Kebutuhan",0],["Uang Tabungan Seharusnya",1]];
+  const cardTips={
+    "Total Pemasukan":"Total income for this month (sum of all income sources).",
+    "Total Pengeluaran":"Total of all expenses, including the auto-calculated savings (nabung).",
+    "Total Terpakai":"Total you've actually spent so far this month (sum of the Spent column).",
+    "Kebutuhan":"Your core needs: Makan, Kos + listrik, Ibu, kartu kredit and Laundry combined.",
+    "Uang Tabungan Seharusnya":"Projected total savings: money carried over plus this month's nabung."
+  };
+  document.getElementById("cards").innerHTML=defs.map(([k,hl])=>
+    `<div class="card ${hl?'hl':''}" title="${cardTips[k]||''}"><div class="k">${k}</div><div class="v" data-card="${k}">${fmt(cur.summary[k])}</div></div>`).join("");
+  wire(); recalc();
+}
+
+function wire(){
+  document.querySelectorAll("#incRows .row, #expRows .row").forEach(row=>{
+    if(row.dataset.locked) return;  // nabung row has no editable inputs/delete
+    row.querySelectorAll("input").forEach(el=>{
+      el.addEventListener("input",()=>{setDirty(true); recalc();});
+      if(el.classList.contains("num")) el.addEventListener("blur",e=>e.target.value=fmt(parse(e.target.value)));
+    });
+    const sel=row.querySelector(".catsel");
+    if(sel) sel.addEventListener("change",()=>{
+      sel.classList.add("ov");      // now an explicit override
+      recalc();                     // update rules panel live
+      persistCategory(row.querySelector('[data-f=item]').value.trim(), sel.value);
+    });
+    const del=row.querySelector(".del");
+    if(del) del.addEventListener("click",()=>{row.remove(); setDirty(true); recalc();});
+  });
+  // Wallet selectors exist on every expense row, including the locked nabung row.
+  document.querySelectorAll("#expRows .row .walsel").forEach(sel=>{
+    sel.addEventListener("change",()=>{
+      const row=sel.closest(".row");
+      const item=row.dataset.locked ? row.dataset.item : row.querySelector('[data-f=item]').value.trim();
+      recalc();
+      persistWallet(item, sel.value);
+    });
+  });
+  document.getElementById("uangSeb").addEventListener("input",()=>{setDirty(true); recalc();});
+  document.getElementById("uangSeb").addEventListener("blur",e=>e.target.value=fmt(parse(e.target.value)));
+  document.getElementById("salDay").addEventListener("input",()=>{setDirty(true); recalc();});
+}
+
+// Persist a global needs/wants override without disturbing unsaved row edits.
+async function persistCategory(item, cat){
+  if(!item) return;
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  try{ await fetch("/api/set_category",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({item,cat,year:y,month:m})}); }catch(e){}
+}
+
+// Persist a global wallet assignment without disturbing unsaved row edits.
+async function persistWallet(item, wallet){
+  if(!item) return;
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  try{ await fetch("/api/set_wallet",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({item,wallet,year:y,month:m})}); }catch(e){}
+}
+
+function collect(){
+  const income=[...document.querySelectorAll("#incRows .row")].map(r=>({
+    item:r.querySelector('[data-f=item]').value.trim(),
+    amount:parse(r.querySelector('[data-f=amount]').value)}));
+  const expense=[...document.querySelectorAll("#expRows .row")].map(r=>{
+    if(r.dataset.locked) return {item:r.dataset.item, amount:0, spent:0, locked:true, cat:"savings"};
+    return {item:r.querySelector('[data-f=item]').value.trim(),
+      amount:parse(r.querySelector('[data-f=amount]').value),
+      spent:parse(r.querySelector('[data-f=spent]').value),
+      cat:(r.querySelector('.catsel')||{}).value||"wants"};
+  });
+  return {income,expense};
+}
+
+// estimate days to payday locally so the per-day figure updates as you change the date
+function daysToPayday(){
+  const d=parseInt(document.getElementById("salDay").value); if(!d) return null;
+  const today=new Date(); let y=today.getFullYear(), m=today.getMonth();
+  const day=Math.min(d,28);
+  let target=new Date(y,m,day);
+  if(today.getDate()>=d){ target=new Date(y,m+1,day); }
+  const diff=Math.ceil((target-today)/86400000);
+  return Math.max(diff,1);
+}
+
+function recalc(){
+  const {income,expense}=collect();
+  const incTot=income.reduce((a,b)=>a+b.amount,0);
+  // Nabung = income minus every other expense.
+  const otherExp=expense.filter(e=>!e.locked).reduce((a,b)=>a+b.amount,0);
+  const nabung=incTot-otherExp;
+  const expTot=otherExp+Math.max(nabung,0)+ (nabung<0?nabung:0); // expTot includes nabung
+  const fullExpTot=otherExp+nabung;
+  document.getElementById("incTot").textContent=fmt(incTot);
+  document.getElementById("expTot").textContent=fmt(fullExpTot);
+
+  // write nabung into its locked row + savings rate + negative warning
+  const nbRow=document.querySelector("#expRows .row[data-locked]");
+  if(nbRow){
+    const val=nbRow.querySelector(".nbval"); const rate=nbRow.querySelector(".rate");
+    val.textContent=fmt(nabung);
+    if(nabung<0){
+      nbRow.classList.add("neg");
+      rate.innerHTML=`<small>over budget</small>negative`;
+    }else{
+      nbRow.classList.remove("neg");
+      const pct=incTot>0?(nabung/incTot*100):0;
+      rate.innerHTML=`<small>of income</small>${pct.toFixed(1)}%`;
+    }
+  }
+
+  const dleft=daysToPayday();
+  document.getElementById("salNote").innerHTML = dleft
+    ? `<b>${dleft}</b> day${dleft>1?"s":""} until payday — per-day figures below are budget minus spent ÷ ${dleft}.`
+    : "Set your payday to get a daily spend recommendation per expense.";
+  const expRows=[...document.querySelectorAll("#expRows .row")];
+  expRows.forEach((r,i)=>{
+    if(r.dataset.locked) return;
+    const e=expense[i]; const cell=r.querySelector(".daily");
+    const remaining=e.amount-e.spent;
+    if(!dleft||e.amount<=0){cell.innerHTML=""; cell.removeAttribute("title"); return;}
+    if(remaining<0){cell.innerHTML=`<small>over by</small>${fmt(-remaining)}`; cell.className="daily over";
+      cell.title="You've already spent more than this item's budget, by this amount.";}
+    else{cell.innerHTML=`<small>per day</small>${fmt(remaining/dleft)}`; cell.className="daily";
+      cell.title=`What you can spend per day on this until payday: (budget − spent) ÷ ${dleft} day${dleft>1?"s":""} left.`;}
+  });
+
+  const em={}; expense.forEach(e=>em[e.item]=e.locked?nabung:e.amount); const g=k=>em[k]||0;
+
+  // Wallet breakdown built from each expense row's wallet dropdown.
+  const wl=(cur&&cur.wallets_list)||[];
+  const wallet={}; wl.forEach(w=>wallet[w]=0);
+  document.querySelectorAll("#expRows .row").forEach(row=>{
+    const sel=row.querySelector(".walsel"); if(!sel) return;
+    const item=row.dataset.locked?row.dataset.item:row.querySelector('[data-f=item]').value.trim();
+    const amt=row.dataset.locked?nabung:parse(row.querySelector('[data-f=amount]').value);
+    let w=sel.value; if(!wl.includes(w)) w="Other / unassigned";
+    wallet[w]=(wallet[w]||0)+amt;
+  });
+  if(!wallet["Other / unassigned"]) delete wallet["Other / unassigned"];
+  // Re-render wallet rows (the set of wallets/values can change as you edit).
+  const walRows=document.getElementById("walRows");
+  walRows.innerHTML=Object.entries(wallet).map(([k,v])=>
+    `<div class="walrow" title="Total budgeted to ${k}, summed from the expenses assigned to it."><span>${k}</span><span class="readonly">${fmt(v)}</span></div>`).join("");
+  document.getElementById("walTot").textContent=fmt(Object.values(wallet).reduce((a,b)=>a+b,0));
+  const uangSeb=parse(document.getElementById("uangSeb").value);
+  document.getElementById("tabRO").textContent=fmt(uangSeb+nabung);
+  const keb=g("Makan")+g("Kos + listrik")+g("Ibu")+g("kartu kredit")+g("Laundry");
+  const totalSpent=expense.filter(e=>!e.locked).reduce((a,b)=>a+(b.spent||0),0);
+  const set=(k,v)=>{const el=document.querySelector(`[data-card="${k}"]`); if(el)el.textContent=fmt(v);};
+  set("Total Pemasukan",incTot); set("Total Pengeluaran",fullExpTot); set("Kebutuhan",keb);
+  set("Uang Tabungan Seharusnya",uangSeb+nabung); set("Total Terpakai",totalSpent);
+
+  renderRules(income,expense,incTot,nabung);
+}
+
+// Budgeting-rule comparison panel (informational).
+const NEEDS_SET=new Set(["Makan","Kos + listrik","Ibu","kartu kredit","Laundry","bensin + service","Tak terduga"]);
+const RULES=[
+  {name:"50 / 30 / 20",needs:.50,wants:.30,savings:.20,blurb:"Balanced default — half needs, a third wants, a fifth saved."},
+  {name:"70 / 20 / 10",needs:.70,wants:.20,savings:.10,blurb:"Higher cost of living — more room for needs, modest saving."},
+  {name:"Pay yourself first 80 / 20",needs:.80,wants:0,savings:.20,blurb:"Save 20% first, spend the rest however you like."},
+  {name:"Aggressive saver 40 / 20 / 40",needs:.40,wants:.20,savings:.40,blurb:"FIRE-style — maximize savings, keep spending lean."},
+];
+function renderRules(income,expense,incTot,nabung){
+  const base=incTot>0?incTot:1;
+  let needs=0,wants=0;
+  expense.forEach(e=>{ if(e.locked)return;
+    if(e.cat==="needs") needs+=e.amount; else wants+=e.amount; });
+  const savings=Math.max(nabung,0);
+  const aN=needs/base, aW=wants/base, aS=savings/base;
+  const pct=x=>(x*100).toFixed(0)+"%";
+  const bar=(n,w,s)=>`<div class="rulebar"><span style="width:${n*100}%" class="seg needs"></span><span style="width:${w*100}%" class="seg wants"></span><span style="width:${s*100}%" class="seg sav"></span></div>`;
+  let html=`<div class="ruleactual">
+    <div class="rulehd">Your split <span class="mono">${pct(aN)} needs · ${pct(aW)} wants · ${pct(aS)} savings</span></div>
+    ${bar(aN,aW,aS)}
+    <div class="rulelegend"><span><i class="needs"></i>Needs</span><span><i class="wants"></i>Wants</span><span><i class="sav"></i>Savings</span></div>
+  </div><div class="ruledivide">Compared to common rules — informational only</div>`;
+  RULES.forEach(r=>{
+    const fit=Math.abs(aS-r.savings)<=0.03;
+    html+=`<div class="ruleitem ${fit?'fit':''}">
+      <div class="rulename">${r.name}${fit?' <small>≈ your savings</small>':''}</div>
+      ${bar(r.needs,r.wants,r.savings)}
+      <div class="ruleblurb">${r.blurb}</div></div>`;
+  });
+  const el=document.getElementById("rulesBody"); if(el) el.innerHTML=html;
+}
+
+async function save(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  const {income,expense}=collect();
+  const body={year:y,month:m,income,expense,
+    uang_sebelumnya:parse(document.getElementById("uangSeb").value),
+    salary_day:document.getElementById("salDay").value||null};
+  cur=await (await fetch("/api/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})).json();
+  render(); const f=document.getElementById("saveflag"); f.textContent="Saved ✓"; f.className="saveflag ok";
+  setTimeout(()=>setDirty(false),1400);
+}
+
+document.getElementById("addInc").addEventListener("click",()=>{
+  document.getElementById("incRows").insertAdjacentHTML("beforeend",incRowHTML({item:"",amount:0}));
+  wire(); setDirty(true); const r=document.querySelector("#incRows .row:last-child .nameinp"); if(r)r.focus();});
+document.getElementById("addExp").addEventListener("click",()=>{
+  document.getElementById("expRows").insertAdjacentHTML("beforeend",expRowHTML({item:"",amount:0,spent:0}));
+  wire(); setDirty(true); const r=document.querySelector("#expRows .row:last-child .nameinp"); if(r)r.focus();});
+
+function openModal(){
+  const mm=document.getElementById("mAddMonth"); mm.innerHTML=MONTHS.map((n,i)=>`<option value="${i+1}">${n}</option>`).join("");
+  const my=document.getElementById("mAddYear"); let o=""; for(let y=2025;y<=2028;y++)o+=`<option value="${y}">${y}</option>`; my.innerHTML=o;
+  document.getElementById("modalBg").classList.add("show");
+}
+async function createPeriod(){
+  const y=document.getElementById("mAddYear").value, m=document.getElementById("mAddMonth").value;
+  const dup=document.getElementById("mDup").checked;
+  const r=await fetch("/api/add_period",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({year:y,month:m,duplicate:dup})});
+  if(!r.ok){alert("That month already exists.");return;}
+  document.getElementById("mDup").checked=false;
+  document.getElementById("modalBg").classList.remove("show"); await loadPeriods(y+"-"+m);
+}
+async function delPeriod(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  if(!confirm(`Delete ${MONTHS[m-1]} ${y}? This cannot be undone.`))return;
+  await fetch("/api/delete_period",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({year:y,month:m})});
+  await loadPeriods();
+}
+
+document.getElementById("periodSel").addEventListener("change",()=>{
+  if(dirty&&!confirm("Discard unsaved changes?")){loadPeriods();return;} loadData();});
+document.getElementById("saveBtn").addEventListener("click",save);
+document.getElementById("addBtn").addEventListener("click",openModal);
+document.getElementById("mCancel").addEventListener("click",()=>document.getElementById("modalBg").classList.remove("show"));
+document.getElementById("mCreate").addEventListener("click",createPeriod);
+document.getElementById("delBtn").addEventListener("click",delPeriod);
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
+
+// Edit the wallet list (add / rename / remove). Comma-separated, order kept.
+const editWalletsBtn=document.getElementById("editWallets");
+if(editWalletsBtn){
+  editWalletsBtn.addEventListener("click",async()=>{
+    const before=(cur&&cur.wallets_list)||[];
+    const input=prompt(
+      "Your wallets (comma-separated). Edit names, add new ones, or remove.\n"+
+      "Renaming one keeps its assigned expenses. Removing one sends its expenses to Unassigned.",
+      before.join(", "));
+    if(input===null) return;
+    const after=input.split(",").map(s=>s.trim()).filter(Boolean);
+    if(!after.length){ alert("You need at least one wallet."); return; }
+    // Infer renames by position when the count matches (best-effort).
+    const rename={};
+    if(before.length===after.length){
+      before.forEach((b,i)=>{ if(b!==after[i]) rename[b]=after[i]; });
+    }
+    const [y,m]=document.getElementById("periodSel").value.split("-");
+    const r=await fetch("/api/wallets",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({wallets:after,rename,year:y,month:m})});
+    if(r.ok){ cur=await r.json(); render(); }
+    else alert("Could not update wallets.");
+  });
+}
+
+
+// Admin-only: view / change the registration token others need to sign up.
+const tokenLink=document.getElementById("tokenLink");
+if(tokenLink){
+  tokenLink.addEventListener("click",async(e)=>{
+    e.preventDefault();
+    let cur="";
+    try{ cur=(await (await fetch("/api/reg_token")).json()).token||""; }catch(_){}
+    const next=prompt("Registration token (others need this to sign up).\nEdit and OK to change, or Cancel to keep:",cur);
+    if(next===null || next===cur) return;
+    const r=await fetch("/api/set_reg_token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:next})});
+    if(r.ok) alert("Registration token updated to: "+next);
+    else alert("Could not update (min 3 characters).");
+  });
+}
+
+loadPeriods();
+
+// Rotating savings encouragement — random message every 5 seconds, offline-safe.
+(function(){
+  const el=document.getElementById("saveMsg"); if(!el||!SAVE_MESSAGES.length) return;
+  let last=-1;
+  function next(){
+    let i; do{ i=Math.floor(Math.random()*SAVE_MESSAGES.length); }while(i===last && SAVE_MESSAGES.length>1);
+    last=i;
+    el.style.opacity=0;
+    setTimeout(()=>{ el.textContent="“"+SAVE_MESSAGES[i]+"”"; el.style.opacity=1; },180);
+  }
+  next(); setInterval(next,5000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Bulanan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter+Tight:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2EDE3; --paper-2:#EAE3D5; --ink:#23201A; --ink-soft:#6B6354;
+  --line:#D7CDB9; --accent:#9A5B34; --accent-soft:#C98A5E;
+  --green:#4A6B47; --green-bg:#E4EAD9; --red:#9A3B34; --red-bg:#F0DED4;
+  --blue-bg:#DCE4E8; --gold-bg:#EFE3C8;
+  --shadow:0 1px 0 #FBF8F1, 0 2px 14px rgba(60,48,30,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',sans-serif; background:var(--paper); color:var(--ink);
+  font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(rgba(74,107,71,.22) 1px, transparent 1.4px),
+    radial-gradient(rgba(58,85,96,.18) 1px, transparent 1.4px);
+  background-size:22px 22px, 22px 22px;
+  background-position:0 0, 11px 11px}
+
+/* ---- ambient animated background ---- */
+.bg-fx{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none}
+.bg-fx .blob{position:absolute; border-radius:50%; filter:blur(70px); opacity:.5;
+  will-change:transform}
+.bg-fx .b1{width:46vw; height:46vw; background:#BFD6C4; top:-10vw; left:-8vw;
+  animation:drift1 26s ease-in-out infinite}
+.bg-fx .b2{width:40vw; height:40vw; background:#B6CEDD; bottom:-12vw; right:-6vw;
+  animation:drift2 32s ease-in-out infinite}
+.bg-fx .b3{width:34vw; height:34vw; background:#C8DCD0; top:35vh; right:18vw;
+  animation:drift3 38s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(6vw,5vh) scale(1.12)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-5vw,-4vh) scale(1.1)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-4vw,4vh) scale(.9)}}
+.mono{font-family:'Spline Sans Mono',monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px; margin:0 auto; padding:28px 22px 80px}
+
+header.top{display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap}
+.brand h1{font-family:'Fraunces',serif; font-weight:900; font-size:38px; line-height:.95; letter-spacing:-.01em}
+.brand .sub{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); margin-top:6px}
+.period-flag{font-family:'Fraunces',serif; font-weight:600; font-size:15px; text-align:right; color:var(--ink-soft)}
+.period-flag b{display:block; font-size:22px; color:var(--ink); font-weight:900}
+.hdr-actions{display:flex; gap:7px; justify-content:flex-end; margin-top:8px}
+
+/* New month button: shows just "+" then expands to reveal the label on hover */
+.expandbtn{display:inline-flex; align-items:center; overflow:hidden; white-space:nowrap;
+  transition:transform .12s ease, background-color .15s ease, box-shadow .15s ease}
+.expandbtn .plus{font-size:17px; line-height:1; font-weight:700}
+.expandbtn .exptext{max-width:0; opacity:0; margin-left:0;
+  transition:max-width .28s ease, opacity .2s ease, margin-left .28s ease}
+.expandbtn:hover .exptext, .expandbtn:focus-visible .exptext{max-width:120px; opacity:1; margin-left:6px}
+
+.controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  padding:14px 0 22px; border-bottom:1px solid var(--line); margin-bottom:26px}
+.controls label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft)}
+select,input[type=number],input[type=text]{font:inherit; padding:8px 11px; border:1px solid var(--line);
+  background:#FBF8F1; border-radius:7px; color:var(--ink)}
+select{cursor:pointer}
+.btn{font:inherit; font-weight:600; padding:8px 15px; border-radius:7px; cursor:pointer; border:1px solid var(--ink);
+  background:var(--ink); color:var(--paper); transition:transform .08s, background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent; color:var(--ink)}
+.btn.ghost:hover{background:var(--paper-2)}
+.btn.danger{border-color:var(--red); color:var(--red); background:transparent}
+.btn.danger:hover{background:var(--red-bg)}
+.btn.sm{padding:5px 10px; font-size:13px}
+.spacer{flex:1}
+.saveflag{font-size:13px; color:var(--ink-soft); min-width:130px; display:inline-flex; align-items:center; gap:7px}
+.saveflag .dot{width:10px; height:10px; border-radius:50%; flex:none; background:#5BB06A; position:relative;
+  box-shadow:0 0 0 2px rgba(91,176,106,.22); transition:background .2s, box-shadow .2s}
+/* unsaved changes -> red */
+.saveflag.dirty{color:var(--red); font-weight:600}
+.saveflag.dirty .dot{background:#E0544E; box-shadow:0 0 0 2px rgba(224,84,78,.22)}
+/* saving in progress -> yellow (with a gentle pulse) */
+.saveflag.saving{color:#9A7A20; font-weight:600}
+.saveflag.saving .dot{background:#E6B23A; box-shadow:0 0 0 2px rgba(230,178,58,.25); animation:savepulse 1s ease-in-out infinite}
+@keyframes savepulse{0%,100%{opacity:1} 50%{opacity:.45}}
+/* saved -> green */
+.saveflag.ok{color:var(--green); font-weight:600}
+.saveflag.ok .dot{background:#5BB06A; box-shadow:0 0 0 2px rgba(91,176,106,.3)}
+/* failed -> red with an ✕ mark to distinguish from plain unsaved */
+.saveflag.fail{color:var(--red); font-weight:700}
+.saveflag.fail .dot{background:#E0544E; box-shadow:0 0 0 2px rgba(224,84,78,.3)}
+.saveflag.fail .dot::after{content:"✕"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:7px; font-weight:700; line-height:1}
+
+.salbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px;
+  background:#FBF8F1; border:1px solid var(--line); border-radius:11px; padding:12px 16px; box-shadow:var(--shadow)}
+.salbar label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft)}
+.salbar input{width:70px; text-align:center}
+.salbar .note{font-size:13px; color:var(--ink-soft)}
+.salbar .note b{color:var(--accent)}
+
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; margin-bottom:30px}
+.card{border:1px solid var(--line); border-radius:11px; padding:15px 16px; background:#FBF8F1; box-shadow:var(--shadow)}
+.card .k{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft)}
+.card .v{font-family:'Spline Sans Mono',monospace; font-weight:600; font-size:21px; margin-top:7px; letter-spacing:-.02em}
+.card.hl{background:var(--gold-bg); border-color:var(--accent-soft)} .card.hl .v{color:var(--accent)}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+@media(max-width:840px){.grid2{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#FBF8F1; box-shadow:var(--shadow)}
+.panel h2{font-family:'Fraunces',serif; font-weight:600; font-size:17px; padding:13px 17px; display:flex; justify-content:space-between; align-items:baseline}
+.panel.income h2{background:var(--green-bg); color:var(--green)}
+.panel.expense h2{background:var(--red-bg); color:var(--red)}
+.panel.wallet h2{background:var(--blue-bg); color:#3A5560}
+.panel h2 .tot{font-family:'Spline Sans Mono',monospace; font-size:15px; font-weight:600}
+
+.colhead{display:grid; gap:6px; padding:6px 17px; font-size:10px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-soft); border-top:1px solid var(--line); background:var(--paper-2)}
+.colhead.inc{grid-template-columns:1fr 140px 30px}
+.colhead.exp{grid-template-columns:1fr 120px 110px 96px 30px}
+.colhead span:not(:first-child){text-align:right}
+
+.row{display:grid; gap:6px; align-items:center; padding:6px 17px; border-top:1px solid var(--line)}
+.row.inc{grid-template-columns:1fr 140px 30px}
+.row.exp{grid-template-columns:1fr 120px 110px 96px 30px}
+.row .nameinp{border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 7px; font:inherit; font-size:14px; color:var(--ink); width:100%}
+.row .nameinp:hover{border-color:var(--line); background:#fff}
+.row .nameinp:focus{outline:none; border-color:var(--accent); background:#fff}
+.row input.num{width:100%; text-align:right; border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 7px;
+  font-family:'Spline Sans Mono',monospace; font-size:14px; color:var(--ink)}
+.row input.num:hover{border-color:var(--line); background:#fff}
+.row input.num:focus{outline:none; border-color:var(--accent); background:#fff}
+.row .daily{font-family:'Spline Sans Mono',monospace; font-size:12px; text-align:right; color:var(--green); line-height:1.15}
+.row .daily.over{color:var(--red)}
+.row .daily small{display:block; font-size:9px; letter-spacing:.04em; color:var(--ink-soft); text-transform:uppercase}
+.row .del{border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:17px; line-height:1; padding:4px; border-radius:6px}
+.row .del:hover{color:var(--red); background:var(--red-bg)}
+.addrow{padding:10px 17px; border-top:1px solid var(--line)}
+.readonly{font-family:'Spline Sans Mono',monospace; font-size:14px; text-align:right; color:var(--ink-soft)}
+.walrow{display:grid; grid-template-columns:1fr 140px; align-items:center; padding:7px 17px; border-top:1px solid var(--line)}
+
+/* rotating savings message */
+.savemsg{background:linear-gradient(100deg,var(--green-bg),var(--gold-bg)); border:1px solid var(--line);
+  border-radius:11px; padding:13px 18px; margin-bottom:18px; font-family:'Fraunces',serif; font-style:italic;
+  font-size:15px; color:var(--green); text-align:center; transition:opacity .25s ease; min-height:46px;
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow)}
+
+/* expense name cell holds the name input + category dropdown */
+.namecell{display:flex; flex-direction:column; gap:3px; min-width:0}
+.tagrow{display:flex; gap:5px; flex-wrap:wrap}
+.walsel{font:inherit; font-size:10px; padding:1px 18px 1px 6px; border:1px solid var(--line); border-radius:5px;
+  background:var(--blue-bg); color:#3A5560; cursor:pointer; width:auto; max-width:100%; letter-spacing:.02em;
+  -webkit-appearance:none; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' fill='none' stroke='%233A5560' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 6px center}
+.walsel:focus{outline:none; border-color:var(--accent)}
+.mlab{display:none}
+.catsel{font:inherit; font-size:10px; padding:1px 18px 1px 6px; border:1px solid var(--line); border-radius:5px;
+  background-color:var(--paper-2); color:var(--ink-soft); cursor:pointer; width:auto; letter-spacing:.04em; text-transform:uppercase;
+  -webkit-appearance:none; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M1 1l3 3 3-3' fill='none' stroke='%236B6354' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 6px center}
+.catsel.ov{background-color:var(--gold-bg); color:var(--accent); border-color:var(--accent-soft); font-weight:600}
+.catsel:focus{outline:none; border-color:var(--accent)}
+
+/* locked nabung row */
+.row.nabung{background:var(--green-bg)}
+.row.nabung.neg{background:var(--red-bg)}
+.row .lockname{font-size:14px; font-weight:600; color:var(--green); display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.row.nabung.neg .lockname{color:var(--red)}
+.row .lockname small{font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); font-weight:500; margin-left:4px}
+.row .nbval{font-weight:600; color:var(--green)}
+.row.nabung.neg .nbval{color:var(--red)}
+.row .rate{font-family:'Spline Sans Mono',monospace; font-size:12px; text-align:right; color:var(--green); line-height:1.15}
+.row.nabung.neg .rate{color:var(--red)}
+.row .rate small{display:block; font-size:9px; letter-spacing:.04em; color:var(--ink-soft); text-transform:uppercase}
+
+/* budgeting rules panel */
+.rulesbody{padding:16px 17px 18px}
+.rulehd{font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:8px}
+.rulehd .mono{font-size:12px; color:var(--ink-soft); font-weight:400}
+.ruleactual{margin-bottom:6px}
+.rulebar{display:flex; height:13px; border-radius:7px; overflow:hidden; background:var(--paper-2); border:1px solid var(--line)}
+.rulebar .seg{display:block; height:100%}
+.seg.needs{background:#7C9A6E} .seg.wants{background:var(--accent-soft)} .seg.sav{background:#5B7F9A}
+.rulelegend{display:flex; gap:16px; margin-top:7px; font-size:11px; color:var(--ink-soft)}
+.rulelegend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:baseline}
+.rulelegend i.needs{background:#7C9A6E} .rulelegend i.wants{background:var(--accent-soft)} .rulelegend i.sav{background:#5B7F9A}
+.ruledivide{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin:16px 0 12px; padding-top:14px; border-top:1px solid var(--line)}
+.ruleitem{margin-bottom:13px}
+.ruleitem.fit{background:var(--gold-bg); margin:0 -10px 13px; padding:9px 10px; border-radius:8px}
+.rulename{font-size:13px; font-weight:600; margin-bottom:6px}
+.rulename small{font-weight:500; color:var(--accent); text-transform:none; letter-spacing:0; font-size:11px}
+.ruleblurb{font-size:12px; color:var(--ink-soft); margin-top:5px; line-height:1.4}
+
+.foot{margin-top:34px; font-size:12px; color:var(--ink-soft); text-align:center; line-height:1.7}
+.foot a{color:var(--accent)}
+.empty{padding:40px 18px; text-align:center; color:var(--ink-soft)}
+
+.modal-bg{position:fixed; inset:0; background:rgba(35,32,26,.45); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:50; padding:18px}
+.modal-bg.show{display:flex; animation:mfade .18s ease}
+@keyframes mfade{from{opacity:0} to{opacity:1}}
+.modal{background:#FBF8F1; border:1px solid var(--line); border-radius:16px; padding:0; width:380px; max-width:100%;
+  box-shadow:0 24px 60px rgba(40,30,15,.32); overflow:hidden; animation:mrise .22s ease}
+@keyframes mrise{from{opacity:0; transform:translateY(10px) scale(.98)} to{opacity:1; transform:none}}
+.modal .mhead{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  padding:20px 22px 0}
+.modal h3{font-family:'Fraunces',serif; font-weight:600; font-size:21px; margin:0; color:var(--ink)}
+.modal .mclose{background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:var(--ink-soft);
+  padding:2px 4px; border-radius:6px; transition:background .15s, color .15s; margin:-4px -4px 0 0}
+.modal .mclose:hover{background:var(--paper-2); color:var(--ink)}
+.modal .mbody{padding:14px 22px 0}
+.modal .mhelp{font-size:13px; color:var(--ink-soft); line-height:1.5; margin:0 0 14px}
+.modal .field{margin-bottom:13px}
+.modal .field label{display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px}
+.modal select, .modal input[type=text]{width:100%; font:inherit; font-size:15px; padding:10px 12px;
+  border:1px solid var(--line); background:#fff; border-radius:9px; color:var(--ink)}
+.modal input[type=text]:focus, .modal select:focus{outline:none; border-color:var(--accent)}
+.modal .merror{font-size:12.5px; color:var(--red); margin:-7px 0 12px; min-height:1px; display:none}
+.modal .merror.show{display:block}
+.modal .actions{display:flex; gap:9px; margin:18px 0 0; padding:0 22px 20px}
+.modal .actions .btn{flex:1; justify-content:center; text-align:center}
+
+@media(max-width:560px){
+  .wrap{padding:18px 14px 60px}
+  .brand h1{font-size:30px}
+
+  /* Stack each expense into a roomy card. The row keeps its 5 children
+     (namecell, budget, spent, per-day, delete); we place them with grid areas
+     so the name spans the top and budget/spent sit side by side below. */
+  .colhead.exp{display:none}
+  .row.exp{
+    display:grid; padding:11px 13px 12px; gap:4px 10px; position:relative;
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:'name name' 'blab slab' 'budget spent' 'perday perday';
+  }
+  .row.exp .namecell{grid-area:name; flex-direction:column; align-items:stretch; gap:6px; padding-right:26px; margin-bottom:4px}
+  .row.exp .namecell .tagrow{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+  .row.exp .nameinp{font-size:15px; font-weight:600; border-color:transparent; background:transparent; width:100%}
+  .row.exp .catsel{flex:none}
+  .row.exp .pbar{margin-top:2px; height:6px}
+  .row.exp .mlab{display:block; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); align-self:end}
+  .row.exp .mlab-b{grid-area:blab} .row.exp .mlab-s{grid-area:slab}
+  .row.exp .num[data-f=amount]{grid-area:budget}
+  .row.exp .num[data-f=spent]{grid-area:spent}
+  .row.exp .num{width:100%; border-color:transparent; background:transparent; font-size:15px; padding:6px 4px; text-align:right}
+  .row.exp .nameinp:focus, .row.exp .num:focus{border-color:var(--accent); background:#fff}
+  .row.exp .daily{grid-area:perday; text-align:left !important; font-size:13px; padding-left:2px; margin-top:3px}
+  .row.exp .del{justify-self:end; align-self:start; position:absolute; top:10px; right:8px; font-size:20px}
+
+  /* nabung (locked) row */
+  .row.exp.nabung{grid-template-areas:'name name' 'nbval nbval' 'rate rate'}
+  .row.exp.nabung .lockname{grid-area:name}
+  .row.exp.nabung .nbval{grid-area:nbval; text-align:left; font-size:17px}
+  .row.exp.nabung .rate{grid-area:rate; text-align:left}
+  .row.exp.nabung .readonly:not(.nbval), .row.exp.nabung > span:empty, .row.exp.nabung .mlab{display:none}
+
+  .colhead.inc,.row.inc{grid-template-columns:1fr 110px 26px}
+  .row.inc input.num,.row.inc .nameinp{padding:8px 7px; font-size:15px; border-color:transparent; background:transparent}
+  .row.inc input.num:focus,.row.inc .nameinp:focus{border-color:var(--accent); background:#fff}
+  .card .v{font-size:18px}
+  .cards{grid-template-columns:1fr 1fr}
+  .btn{padding:10px 13px}
+}
+
+/* ---- micro-interactions: subtle hover animation across the UI ---- */
+.card{transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease}
+.card:hover{transform:translateY(-3px); box-shadow:0 1px 0 #FBF8F1, 0 6px 22px rgba(60,48,30,.13); border-color:var(--accent-soft)}
+
+.panel{transition:transform .18s ease, box-shadow .18s ease}
+.panel:hover{box-shadow:0 1px 0 #FBF8F1, 0 6px 24px rgba(60,48,30,.11)}
+
+/* income / expense / wallet rows gently highlight and nudge on hover */
+.row, .walrow{transition:background-color .14s ease, transform .14s ease}
+.row:hover, .walrow:hover{background-color:rgba(154,91,52,.05)}
+.row.exp:hover, .row.inc:hover{transform:translateX(2px)}
+.row.exp.nabung:hover{transform:none; background-color:rgba(74,107,71,.08)}
+.row.exp.nabung.neg:hover{background-color:rgba(154,59,52,.08)}
+
+/* inputs lift their border on hover for affordance */
+.row .nameinp, .row input.num{transition:border-color .14s ease, background-color .14s ease, box-shadow .14s ease}
+.row input.num:hover:not(:focus){box-shadow:0 0 0 2px rgba(154,91,52,.08)}
+.uangseb-inp{border:1px solid transparent !important; background:transparent !important; border-radius:6px; padding:6px 8px; text-align:right; transition:border-color .14s ease, background-color .14s ease}
+.uangseb-inp:hover{border-color:var(--line) !important; background:#fff !important}
+.uangseb-inp:focus{outline:none; border-color:var(--accent) !important; background:#fff !important}
+.uangseb-wrap{display:inline-flex; align-items:center; gap:4px; justify-self:end}
+.syncbtn{flex:none; width:26px; height:26px; border-radius:50%; border:1px solid var(--line);
+  background:var(--green-bg); color:var(--green); cursor:pointer; font-size:14px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center; padding:0;
+  transition:transform .15s ease, background-color .15s ease, box-shadow .15s ease}
+.syncbtn:hover{background:#D9E4CC; box-shadow:0 2px 8px rgba(74,107,71,.2)}
+.syncbtn:active{transform:scale(.92)}
+.syncbtn.spin{animation:syncspin .5s ease}
+.syncbtn[disabled]{opacity:.35; cursor:not-allowed}
+@keyframes syncspin{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+
+/* dropdowns react */
+.catsel, .walsel{transition:transform .12s ease, border-color .14s ease, background-color .14s ease}
+.catsel:hover, .walsel:hover{transform:scale(1.04); border-color:var(--accent-soft)}
+
+/* delete button pops a touch */
+.row .del{transition:transform .12s ease, color .12s ease, background-color .12s ease}
+.row .del:hover{transform:scale(1.25)}
+
+/* primary buttons get a soft shadow on hover (lift already exists) */
+.btn{transition:transform .12s ease, background-color .15s ease, box-shadow .15s ease}
+.btn:hover{box-shadow:0 4px 14px rgba(60,48,30,.16)}
+.btn.sm:hover{box-shadow:0 3px 10px rgba(60,48,30,.13)}
+
+/* savings message + payday bar settle in with a faint lift */
+.savemsg{transition:opacity .25s ease, transform .2s ease, box-shadow .2s ease}
+.savemsg:hover{transform:translateY(-1px)}
+.salbar{transition:box-shadow .18s ease}
+.salbar:hover{box-shadow:0 1px 0 #FBF8F1, 0 5px 18px rgba(60,48,30,.09)}
+
+/* budgeting-rule bars grow slightly on hover */
+.ruleitem{transition:transform .15s ease}
+.ruleitem:hover{transform:translateX(3px)}
+.rulebar{transition:transform .15s ease}
+.ruleactual:hover .rulebar{transform:scaleY(1.18)}
+
+/* gentle fade-in for content when a month loads */
+@keyframes riseIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+.anim-in{animation:riseIn .28s ease}
+
+/* respect users who prefer no motion */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  .card:hover, .row.exp:hover, .row.inc:hover, .ruleitem:hover, .savemsg:hover{transform:none}
+  .bg-fx .blob{animation:none !important}
+}
+
+/* budget-vs-spent progress bar on expense rows */
+.pbar{height:5px; border-radius:4px; background:var(--paper-2); overflow:hidden; margin-top:5px; width:100%}
+.pbar .pfill{display:block; height:100%; width:0; background:var(--green); border-radius:4px;
+  transition:width .35s ease, background .2s ease}
+.pbar.over .pfill{background:var(--red)}
+
+/* prev-month comparison on summary cards */
+.card .delta{display:inline-block; margin-top:5px; font-size:11px; font-weight:600;
+  font-family:'Spline Sans Mono',monospace; letter-spacing:.01em}
+.card .delta.up{color:var(--green)}
+.card .delta.down{color:var(--red)}
+.card .delta.flat{color:var(--ink-soft); font-weight:500}
+
+/* trend mini-chart */
+.trendpanel h2{display:flex; align-items:center}
+.trendlegend{margin-left:auto; display:flex; gap:14px; font-family:'Inter Tight'; font-size:11px;
+  font-weight:500; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft)}
+.trendlegend .lg{display:inline-flex; align-items:center; gap:5px}
+.trendlegend .lg::before{content:""; width:11px; height:11px; border-radius:3px; display:inline-block}
+.trendlegend .lg-nab::before{background:var(--green)}
+.trendlegend .lg-exp::before{background:var(--paper-2); border:1px solid var(--line)}
+.trendchart{padding:14px 16px 6px}
+.trendchart .tbar{fill:#D9CFBC}
+.trendchart .tbar.cur{fill:var(--accent-soft)}
+.trendchart .tline{stroke:var(--green); stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+.trendchart .tdot{fill:var(--green)}
+.trendchart .tdot.cur{fill:var(--green); stroke:#FBF8F1; stroke-width:2}
+.trendchart .tlbl{fill:var(--ink-soft); font-size:10px; font-family:'Inter Tight'}
+.trendchart .tlbl.cur{fill:var(--ink); font-weight:600}
+
+/* collapsible budgeting rules */
+.rulestoggle{display:inline-flex; align-items:center; gap:6px; margin:14px 0 0; padding:6px 12px;
+  font:inherit; font-size:13px; font-weight:600; color:var(--accent); background:var(--gold-bg);
+  border:1px solid var(--accent-soft); border-radius:8px; cursor:pointer; transition:background .15s ease}
+.rulestoggle:hover{background:#F0E2C9}
+.rulestoggle .chev{transition:transform .2s ease; font-size:11px}
+.rulestoggle.open .chev{transform:rotate(90deg)}
+.rulespresets{margin-top:12px}
+.rulespresets[hidden]{display:none}
+</style>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Budget Bulanan</h1><div class="sub">{{ username }}{% if is_admin %} · admin{% endif %} · plan ledger</div></div>
+    <div class="period-flag">Viewing<b id="flag">—</b>
+      <div class="hdr-actions">
+        {% if is_admin %}<button class="btn ghost sm" id="tokenLink" title="Admin only: view or change the token new users must enter to register an account.">Reg. token</button>{% endif %}
+        <button class="btn ghost sm" id="signOutBtn" onclick="location.href='/logout'" title="Sign out of your account.">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <label>Period</label>
+    <select id="periodSel" title="Pick which month to view or edit. The newest month opens by default."></select>
+    <button class="btn ghost expandbtn" id="addBtn" title="Create a new month. You can start blank or copy the latest month's budgets.">
+      <span class="plus">+</span><span class="exptext">New month</span>
+    </button>
+    <div class="spacer"></div>
+    <span class="saveflag" id="saveflag"><span class="dot"></span><span class="txt">All changes saved</span></span>
+    <button class="btn" id="saveBtn" title="Save all edits for this month to the database. Edits aren't stored until you click this.">Save changes</button>
+    <button class="btn danger" id="delBtn" title="Permanently delete the month you're viewing. This cannot be undone.">Delete</button>
+  </div>
+
+  <div id="body">
+    <div class="savemsg" id="saveMsg" aria-live="polite"></div>
+
+    <div class="salbar">
+      <label for="salDay">Payday (day of month)</label>
+      <input id="salDay" type="number" min="1" max="31" placeholder="–" title="The day of the month you get paid. Used to work out how many days are left until payday, so each expense can show a safe daily spend.">
+      <span class="note" id="salNote">Set your payday to get a daily spend recommendation per expense.</span>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="panel trendpanel" id="trendPanel" style="margin-bottom:22px">
+      <h2 title="Your savings and expenses across recent months.">Trend
+        <span class="trendlegend">
+          <span class="lg lg-nab">Savings</span>
+          <span class="lg lg-exp">Expenses</span>
+        </span>
+      </h2>
+      <div id="trendChart" class="trendchart"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel income">
+        <h2 title="Money coming in this month. The total updates as you edit.">Income <span class="tot mono" id="incTot">—</span></h2>
+        <div class="colhead inc"><span title="What the income is (salary, bonus, etc.)">Source</span><span title="How much you expect to receive.">Amount</span><span></span></div>
+        <div id="incRows"></div>
+        <div class="addrow"><button class="btn ghost sm expandbtn" id="addInc" title="Add a new income source (e.g. a bonus or side job)."><span class="plus">+</span><span class="exptext">Add income</span></button></div>
+      </div>
+      <div class="panel expense">
+        <h2 title="Money going out this month, including the auto-calculated savings (nabung).">Expenses <span class="tot mono" id="expTot">—</span></h2>
+        <div class="colhead exp"><span title="What the expense is.">Item</span><span title="How much you plan to spend on this.">Budget</span><span title="How much you've actually spent so far this month.">Spent</span><span title="Suggested daily limit for the rest of this item's budget until payday: (budget − spent) ÷ days left.">Per day</span><span></span></div>
+        <div id="expRows"></div>
+        <div class="addrow"><button class="btn ghost sm expandbtn" id="addExp" title="Add a new expense line. Set its budget, and optionally tag it Need or Want."><span class="plus">+</span><span class="exptext">Add expense</span></button></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:22px">
+      <div class="panel wallet">
+        <h2 title="How your budgeted money splits across your wallets/accounts. Set each expense's wallet with the dropdown on its row.">Wallet breakdown <span style="flex:1"></span><button class="btn ghost sm expandbtn" id="editWallets" title="Add, rename, or remove wallets." style="margin-left:8px"><span class="plus" aria-hidden="true">✎</span><span class="exptext">Edit wallets</span></button> <span class="tot mono" id="walTot" style="margin-left:10px">—</span></h2>
+        <div id="walRows"></div>
+      </div>
+      <div class="panel">
+        <h2 style="background:var(--paper-2)" title="Money carried over from before this month, used to project your expected total savings.">Carry-over</h2>
+        <div class="walrow"><span title="Money you already had before this month started.">Uang sebelumnya</span>
+          <span class="uangseb-wrap">
+            <button class="syncbtn" id="syncPrev" type="button" title="Pull last month's projected savings (Tabungan seharusnya) into this field and save." aria-label="Sync from last month's savings">⟳</button>
+            <input class="num mono uangseb-inp" id="uangSeb" type="text" inputmode="numeric" title="Your starting balance before this month. Edit it, then Save.">
+          </span>
+        </div>
+        <div class="walrow" style="border-top:1px solid var(--line)"><span style="color:var(--ink-soft)" title="What your savings should total after this month: carry-over plus this month's nabung.">Tabungan seharusnya</span><span class="readonly" id="tabRO">—</span></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:22px">
+      <h2 style="background:var(--gold-bg);color:var(--accent)" title="Compares how your money splits into Needs, Wants and Savings against well-known budgeting guidelines. Informational only — nothing is enforced.">Budgeting rules <span style="font-family:'Inter Tight';font-size:12px;font-weight:500;color:var(--ink-soft);letter-spacing:0">reference only</span></h2>
+      <div id="rulesBody" class="rulesbody"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Data lives in <span class="mono">budget.db</span>. Nabung is auto-calculated: income minus all other expenses.<br>
+    <a href="/logout">Sign out</a>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mAddTitle">
+    <div class="mhead"><h3 id="mAddTitle">Add a new month</h3>
+      <button class="mclose" id="mClose" aria-label="Close dialog">×</button></div>
+    <div class="mbody">
+      <div class="field"><label>Month</label><select id="mAddMonth"></select></div>
+      <div class="field"><label>Year</label><select id="mAddYear"></select></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:4px;color:var(--ink-soft)"
+             title="Start the new month pre-filled with the same budget items and amounts as your most recent month, so you don't re-type recurring expenses. Spent values reset to zero.">
+        <input type="checkbox" id="mDup" style="width:auto"> Copy budgets from the latest month
+      </label>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="mCancel">Cancel</button>
+      <button class="btn" id="mCreate">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="tokenBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tokTitle">
+    <div class="mhead"><h3 id="tokTitle">Registration token</h3>
+      <button class="mclose" id="tokClose" aria-label="Close dialog">×</button></div>
+    <div class="mbody">
+      <p class="mhelp">New users must enter this token to create an account. Share it only with people you want to let in.</p>
+      <div class="field"><label for="tokInput">Token</label>
+        <input type="text" id="tokInput" autocomplete="off" spellcheck="false"></div>
+      <div class="merror" id="tokError"></div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="tokCancel">Cancel</button>
+      <button class="btn" id="tokSave">Save token</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="walletBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="walTitle">
+    <div class="mhead"><h3 id="walTitle">Edit wallets</h3>
+      <button class="mclose" id="walClose" aria-label="Close dialog">×</button></div>
+    <div class="mbody">
+      <p class="mhelp">Your wallets, separated by commas. Renaming one keeps its assigned expenses; removing one sends its expenses to “Other / unassigned”.</p>
+      <div class="field"><label for="walInput">Wallets</label>
+        <input type="text" id="walInput" autocomplete="off" spellcheck="false"></div>
+      <div class="merror" id="walError"></div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="walCancel">Cancel</button>
+      <button class="btn" id="walSaveBtn">Save wallets</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAVE_MESSAGES = {{ messages|tojson }};
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const fmt=n=>"Rp "+Math.round(n||0).toLocaleString("id-ID");
+const parse=s=>Number(String(s).replace(/[^\d-]/g,""))||0;
+let cur=null, dirty=false;
+
+function flagTxt(s){const t=document.querySelector("#saveflag .txt"); if(t)t.textContent=s;}
+function setDirty(d){dirty=d; const f=document.getElementById("saveflag");
+  if(d){flagTxt("Unsaved changes"); f.className="saveflag dirty";}
+  else{flagTxt("All changes saved"); f.className="saveflag";}}
+
+async function loadPeriods(sel){
+  const ps=(await (await fetch("/api/periods")).json()).slice().reverse(); // newest first
+  const s=document.getElementById("periodSel"); s.innerHTML="";
+  ps.forEach(p=>{const o=document.createElement("option");o.value=p.year+"-"+p.month;o.textContent=p.month_name+" "+p.year;s.appendChild(o);});
+  if(ps.length){ s.value=sel||s.value||(ps[0].year+"-"+ps[0].month); await loadData(); }
+  else { document.getElementById("body").innerHTML='<div class="empty">No months yet. Click “+ New month”.</div>'; }
+}
+
+async function loadData(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  cur=await (await fetch(`/api/data?year=${y}&month=${m}`)).json();
+  render(); setDirty(false);
+  loadTrend();
+}
+
+// Trend mini-chart: expense bars + savings line across all months.
+async function loadTrend(){
+  const host=document.getElementById("trendChart"); if(!host) return;
+  let data;
+  try{ data=await (await fetch("/api/trend")).json(); }catch(e){ return; }
+  const panel=document.getElementById("trendPanel");
+  if(!data || data.length<2){ if(panel) panel.style.display="none"; return; }
+  if(panel) panel.style.display="";
+  const [cy,cm]=document.getElementById("periodSel").value.split("-").map(Number);
+  const W=Math.max(host.clientWidth||680,320), H=150, pad={l:8,r:8,t:14,b:22};
+  const iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
+  const maxV=Math.max(...data.map(d=>Math.max(d.expense,d.nabung,0)),1);
+  const n=data.length, slot=iw/n, bw=Math.min(slot*0.42,26);
+  const x=i=>pad.l+slot*i+slot/2;
+  const yv=v=>pad.t+ih-(Math.max(v,0)/maxV)*ih;
+  let bars="",pts=[],dots="",labels="";
+  data.forEach((d,i)=>{
+    const cur=(d.year===cy&&d.month===cm);
+    const bh=Math.max((Math.max(d.expense,0)/maxV)*ih,1);
+    bars+=`<rect x="${x(i)-bw/2}" y="${pad.t+ih-bh}" width="${bw}" height="${bh}" rx="3" class="tbar ${cur?'cur':''}"><title>${d.label}: expenses ${fmt(d.expense)}</title></rect>`;
+    const py=yv(d.nabung); pts.push(`${x(i)},${py}`);
+    dots+=`<circle cx="${x(i)}" cy="${py}" r="${cur?4:2.6}" class="tdot ${cur?'cur':''}"><title>${d.label}: savings ${fmt(d.nabung)}</title></circle>`;
+    if(i%Math.ceil(n/8||1)===0||cur||i===n-1) labels+=`<text x="${x(i)}" y="${H-6}" class="tlbl ${cur?'cur':''}" text-anchor="middle">${d.label}</text>`;
+  });
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" role="img" aria-label="Savings and expenses trend across months">
+    ${bars}
+    <polyline points="${pts.join(" ")}" class="tline" fill="none"/>
+    ${dots}${labels}</svg>`;
+}
+
+function incRowHTML(it){
+  return `<div class="row inc">
+    <input class="nameinp" data-f="item" value="${(it.item||"").replace(/"/g,'&quot;')}" placeholder="name">
+    <input class="num" data-f="amount" value="${fmt(it.amount)}">
+    <button class="del" title="Remove">×</button></div>`;
+}
+function expRowHTML(it){
+  if(it.locked){
+    // Nabung — fixed, auto-calculated. Read-only, but its wallet is assignable.
+    const wl=(cur&&cur.wallets_list)||[];
+    const myWal=it.wallet||"";
+    const walOpts=wl.map(w=>`<option value="${w.replace(/"/g,'&quot;')}" ${w===myWal?'selected':''}>${w}</option>`).join("")
+      +`<option value="Other / unassigned" ${myWal==='Other / unassigned'||!wl.includes(myWal)?'selected':''}>Unassigned</option>`;
+    return `<div class="row exp nabung" data-locked="1" data-item="${(it.item||"").replace(/"/g,'&quot;')}" title="Nabung (savings) is calculated automatically: total income minus all other expenses. It can't be edited or deleted. If it turns red, your expenses exceed your income.">
+      <span class="lockname">${it.item} <small>auto</small>
+        <select class="walsel" data-f="wallet" title="Which wallet your savings go to.">${walOpts}</select>
+      </span>
+      <span class="readonly nbval">${fmt(it.amount)}</span>
+      <span class="readonly" style="color:var(--ink-soft)">—</span>
+      <span class="rate" title="Share of your income left as savings this month."></span>
+      <span></span></div>`;
+  }
+  const cat=it.cat||"wants";
+  const isOv=it.cat_override;
+  const wl=(cur&&cur.wallets_list)||[];
+  const myWal=it.wallet||"";
+  const walOpts=wl.map(w=>`<option value="${w.replace(/"/g,'&quot;')}" ${w===myWal?'selected':''}>${w}</option>`).join("")
+    +`<option value="Other / unassigned" ${myWal==='Other / unassigned'||!wl.includes(myWal)?'selected':''}>Unassigned</option>`;
+  return `<div class="row exp" data-item="${(it.item||"").replace(/"/g,'&quot;')}">
+    <div class="namecell">
+      <input class="nameinp" data-f="item" value="${(it.item||"").replace(/"/g,'&quot;')}" placeholder="name">
+      <div class="tagrow">
+        <select class="catsel ${isOv?'ov':''}" data-f="cat" title="Is this a Need or a Want? Auto-assigned, but you can change it. Applies to this item across all months and feeds the Budgeting rules panel.">
+          <option value="needs" ${cat==='needs'?'selected':''}>Need</option>
+          <option value="wants" ${cat==='wants'?'selected':''}>Want</option>
+        </select>
+        <select class="walsel" data-f="wallet" title="Which wallet/account this expense comes from. Feeds the Wallet breakdown. Applies to this item across all months.">
+          ${walOpts}
+        </select>
+      </div>
+      <div class="pbar" title="How much of this item's budget you've spent."><span class="pfill"></span></div>
+    </div>
+    <input class="num" data-f="amount" value="${fmt(it.amount)}" placeholder="Budget">
+    <span class="mlab mlab-b">Budget</span>
+    <input class="num" data-f="spent" value="${fmt(it.spent)}" placeholder="Spent">
+    <span class="mlab mlab-s">Spent</span>
+    <span class="daily"></span>
+    <button class="del" title="Remove">×</button></div>`;
+}
+
+function render(){
+  document.getElementById("flag").textContent=cur.month_name+" "+cur.year;
+  document.getElementById("salDay").value=cur.salary_day||"";
+  document.getElementById("incRows").innerHTML=cur.income.map(incRowHTML).join("");
+  document.getElementById("expRows").innerHTML=cur.expense.map(expRowHTML).join("");
+  document.getElementById("walRows").innerHTML="";
+  document.getElementById("uangSeb").value=fmt(cur.summary["Uang Sebelumnya"]);
+  const syncBtn=document.getElementById("syncPrev");
+  if(syncBtn){
+    const has=cur.prev_tabungan!=null;
+    syncBtn.disabled=!has;
+    syncBtn.title=has
+      ? `Pull ${cur.prev_label}'s projected savings (${fmt(cur.prev_tabungan)}) into this field and save.`
+      : "No previous month to sync from.";
+  }
+  const defs=[["Total Pemasukan",0],["Total Pengeluaran",0],["Total Terpakai",0],["Kebutuhan",0],["Uang Tabungan Seharusnya",1]];
+  const cardTips={
+    "Total Pemasukan":"Total income for this month (sum of all income sources).",
+    "Total Pengeluaran":"Total of your expenses, excluding the auto-calculated savings (nabung).",
+    "Total Terpakai":"Total you've actually spent so far this month (sum of the Spent column).",
+    "Kebutuhan":"Your core needs: Makan, Kos + listrik, Ibu, kartu kredit and Laundry combined.",
+    "Uang Tabungan Seharusnya":"Projected total savings: money carried over plus this month's nabung."
+  };
+  // For Uang Tabungan, compare this month's own saving (nabung) vs last month's.
+  const ps=cur.prev_summary;
+  const curNabung=(cur.expense.find(e=>e.locked)||{}).amount||0;
+  function deltaHTML(k){
+    if(!ps) return "";
+    let curV=cur.summary[k], prevV=ps[k];
+    if(k==="Uang Tabungan Seharusnya"){curV=curNabung; prevV=ps[k];}
+    if(k==="Total Terpakai") return ""; // spent has no meaningful prior-month plan compare
+    if(prevV===undefined||prevV===null) return "";
+    const diff=curV-prevV;
+    if(Math.abs(diff)<1) return `<span class="delta flat" title="Same as last month">→ same</span>`;
+    const up=diff>0;
+    // For expenses & needs, up = more spending (less good) -> neutral arrow color; for income/savings up = good.
+    const good=(k==="Total Pemasukan"||k==="Uang Tabungan Seharusnya")?up:!up;
+    const cls=good?"up":"down";
+    const arrow=up?"↑":"↓";
+    const pct=prevV!==0?Math.round(Math.abs(diff)/Math.abs(prevV)*100):null;
+    return `<span class="delta ${cls}" title="vs last month (${fmt(prevV)})">${arrow} ${fmt(Math.abs(diff))}${pct!==null?` · ${pct}%`:""}</span>`;
+  }
+  document.getElementById("cards").innerHTML=defs.map(([k,hl])=>
+    `<div class="card ${hl?'hl':''}" title="${cardTips[k]||''}"><div class="k">${k}</div><div class="v" data-card="${k}">${fmt(cur.summary[k])}</div>${deltaHTML(k)}</div>`).join("");
+  wire(); recalc();
+  // Brief rise-in animation when a month's content is (re)rendered, then remove
+  // the class so it never interferes with hover transforms.
+  requestAnimationFrame(()=>{
+    const els=document.querySelectorAll("#cards .card, .grid2 .panel");
+    els.forEach((el,i)=>{
+      el.classList.remove("anim-in"); void el.offsetWidth;
+      el.style.animationDelay=(i*30)+"ms";
+      el.classList.add("anim-in");
+      el.addEventListener("animationend",()=>{
+        el.classList.remove("anim-in"); el.style.animationDelay="";
+      },{once:true});
+    });
+  });
+}
+
+function wire(){
+  document.querySelectorAll("#incRows .row, #expRows .row").forEach(row=>{
+    if(row.dataset.locked) return;  // nabung row has no editable inputs/delete
+    row.querySelectorAll("input").forEach(el=>{
+      el.addEventListener("input",()=>{setDirty(true); recalc();});
+      if(el.classList.contains("num")) el.addEventListener("blur",e=>e.target.value=fmt(parse(e.target.value)));
+    });
+    const sel=row.querySelector(".catsel");
+    if(sel) sel.addEventListener("change",()=>{
+      sel.classList.add("ov");      // now an explicit override
+      recalc();                     // update rules panel live
+      persistCategory(row.querySelector('[data-f=item]').value.trim(), sel.value);
+    });
+    const del=row.querySelector(".del");
+    if(del) del.addEventListener("click",()=>{row.remove(); setDirty(true); recalc();});
+  });
+  // Wallet selectors exist on every expense row, including the locked nabung row.
+  document.querySelectorAll("#expRows .row .walsel").forEach(sel=>{
+    sel.addEventListener("change",()=>{
+      const row=sel.closest(".row");
+      const item=row.dataset.locked ? row.dataset.item : row.querySelector('[data-f=item]').value.trim();
+      recalc();
+      persistWallet(item, sel.value);
+    });
+  });
+  document.getElementById("uangSeb").addEventListener("input",()=>{setDirty(true); recalc();});
+  document.getElementById("uangSeb").addEventListener("blur",e=>e.target.value=fmt(parse(e.target.value)));
+  document.getElementById("salDay").addEventListener("input",()=>{setDirty(true); recalc();});
+}
+
+// Persist a global needs/wants override without disturbing unsaved row edits.
+async function persistCategory(item, cat){
+  if(!item) return;
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  try{ await fetch("/api/set_category",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({item,cat,year:y,month:m})}); }catch(e){}
+}
+
+// Persist a global wallet assignment without disturbing unsaved row edits.
+async function persistWallet(item, wallet){
+  if(!item) return;
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  try{ await fetch("/api/set_wallet",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({item,wallet,year:y,month:m})}); }catch(e){}
+}
+
+function collect(){
+  const income=[...document.querySelectorAll("#incRows .row")].map(r=>({
+    item:r.querySelector('[data-f=item]').value.trim(),
+    amount:parse(r.querySelector('[data-f=amount]').value)}));
+  const expense=[...document.querySelectorAll("#expRows .row")].map(r=>{
+    if(r.dataset.locked) return {item:r.dataset.item, amount:0, spent:0, locked:true, cat:"savings"};
+    return {item:r.querySelector('[data-f=item]').value.trim(),
+      amount:parse(r.querySelector('[data-f=amount]').value),
+      spent:parse(r.querySelector('[data-f=spent]').value),
+      cat:(r.querySelector('.catsel')||{}).value||"wants"};
+  });
+  return {income,expense};
+}
+
+// estimate days to payday locally so the per-day figure updates as you change the date
+function daysToPayday(){
+  const d=parseInt(document.getElementById("salDay").value); if(!d) return null;
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()); // midnight
+  const y=today.getFullYear(), m=today.getMonth();
+  const lastThis=new Date(y,m+1,0).getDate();      // last day of this month
+  const paydayThis=Math.min(d,lastThis);
+  let target;
+  if(today.getDate()>=paydayThis){                  // reached/passed -> next month
+    const lastNext=new Date(y,m+2,0).getDate();
+    target=new Date(y,m+1,Math.min(d,lastNext));
+  }else{
+    target=new Date(y,m,paydayThis);
+  }
+  const diff=Math.round((target-today)/86400000);
+  return Math.max(diff,1);
+}
+
+function recalc(){
+  const {income,expense}=collect();
+  const incTot=income.reduce((a,b)=>a+b.amount,0);
+  // Nabung = income minus every other expense.
+  const otherExp=expense.filter(e=>!e.locked).reduce((a,b)=>a+b.amount,0);
+  const nabung=incTot-otherExp;
+  const expTot=otherExp+Math.max(nabung,0)+ (nabung<0?nabung:0); // expTot includes nabung
+  const fullExpTot=otherExp+nabung;
+  document.getElementById("incTot").textContent=fmt(incTot);
+  document.getElementById("expTot").textContent=fmt(fullExpTot);
+
+  // write nabung into its locked row + savings rate + negative warning
+  const nbRow=document.querySelector("#expRows .row[data-locked]");
+  if(nbRow){
+    const val=nbRow.querySelector(".nbval"); const rate=nbRow.querySelector(".rate");
+    val.textContent=fmt(nabung);
+    if(nabung<0){
+      nbRow.classList.add("neg");
+      rate.innerHTML=`<small>over budget</small>negative`;
+    }else{
+      nbRow.classList.remove("neg");
+      const pct=incTot>0?(nabung/incTot*100):0;
+      rate.innerHTML=`<small>of income</small>${pct.toFixed(1)}%`;
+    }
+  }
+
+  const dleft=daysToPayday();
+  document.getElementById("salNote").innerHTML = dleft
+    ? `<b>${dleft}</b> day${dleft>1?"s":""} until payday — per-day figures below are budget minus spent ÷ ${dleft}.`
+    : "Set your payday to get a daily spend recommendation per expense.";
+  const expRows=[...document.querySelectorAll("#expRows .row")];
+  expRows.forEach((r,i)=>{
+    if(r.dataset.locked) return;
+    const e=expense[i]; const cell=r.querySelector(".daily");
+    const remaining=e.amount-e.spent;
+    // Budget-vs-spent progress bar (independent of payday).
+    const bar=r.querySelector(".pbar"); const fill=bar?bar.querySelector(".pfill"):null;
+    if(fill){
+      if(e.amount>0){
+        const pct=Math.min(e.spent/e.amount*100,100);
+        const over=e.spent>e.amount;
+        fill.style.width=pct+"%";
+        bar.classList.toggle("over",over);
+        bar.style.display="";
+        bar.title=over
+          ? `Over budget — spent ${fmt(e.spent)} of ${fmt(e.amount)}.`
+          : `Spent ${fmt(e.spent)} of ${fmt(e.amount)} (${Math.round(e.spent/e.amount*100)}%).`;
+      }else{ bar.style.display="none"; }
+    }
+    if(!dleft||e.amount<=0){cell.innerHTML=""; cell.removeAttribute("title"); return;}
+    if(remaining<0){cell.innerHTML=`<small>over by</small>${fmt(-remaining)}`; cell.className="daily over";
+      cell.title="You've already spent more than this item's budget, by this amount.";}
+    else{cell.innerHTML=`<small>per day</small>${fmt(remaining/dleft)}`; cell.className="daily";
+      cell.title=`What you can spend per day on this until payday: (budget − spent) ÷ ${dleft} day${dleft>1?"s":""} left.`;}
+  });
+
+  const em={}; expense.forEach(e=>em[e.item]=e.locked?nabung:e.amount); const g=k=>em[k]||0;
+
+  // Wallet breakdown built from each expense row's wallet dropdown.
+  const wl=(cur&&cur.wallets_list)||[];
+  const wallet={}; wl.forEach(w=>wallet[w]=0);
+  document.querySelectorAll("#expRows .row").forEach(row=>{
+    const sel=row.querySelector(".walsel"); if(!sel) return;
+    const item=row.dataset.locked?row.dataset.item:row.querySelector('[data-f=item]').value.trim();
+    const amt=row.dataset.locked?nabung:parse(row.querySelector('[data-f=amount]').value);
+    let w=sel.value; if(!wl.includes(w)) w="Other / unassigned";
+    wallet[w]=(wallet[w]||0)+amt;
+  });
+  if(!wallet["Other / unassigned"]) delete wallet["Other / unassigned"];
+  // Re-render wallet rows (the set of wallets/values can change as you edit).
+  const walRows=document.getElementById("walRows");
+  walRows.innerHTML=Object.entries(wallet).map(([k,v])=>
+    `<div class="walrow" title="Total budgeted to ${k}, summed from the expenses assigned to it."><span>${k}</span><span class="readonly">${fmt(v)}</span></div>`).join("");
+  document.getElementById("walTot").textContent=fmt(Object.values(wallet).reduce((a,b)=>a+b,0));
+  const uangSeb=parse(document.getElementById("uangSeb").value);
+  document.getElementById("tabRO").textContent=fmt(uangSeb+nabung);
+  const keb=g("Makan")+g("Kos + listrik")+g("Ibu")+g("kartu kredit")+g("Laundry");
+  const totalSpent=expense.filter(e=>!e.locked).reduce((a,b)=>a+(b.spent||0),0);
+  const set=(k,v)=>{const el=document.querySelector(`[data-card="${k}"]`); if(el)el.textContent=fmt(v);};
+  set("Total Pemasukan",incTot); set("Total Pengeluaran",otherExp); set("Kebutuhan",keb);
+  set("Uang Tabungan Seharusnya",uangSeb+nabung); set("Total Terpakai",totalSpent);
+
+  renderRules(income,expense,incTot,nabung);
+}
+
+// Budgeting-rule comparison panel (informational).
+const NEEDS_SET=new Set(["Makan","Kos + listrik","Ibu","kartu kredit","Laundry","bensin + service","Tak terduga"]);
+const RULES=[
+  {name:"50 / 30 / 20",needs:.50,wants:.30,savings:.20,blurb:"Balanced default — half needs, a third wants, a fifth saved."},
+  {name:"70 / 20 / 10",needs:.70,wants:.20,savings:.10,blurb:"Higher cost of living — more room for needs, modest saving."},
+  {name:"Pay yourself first 80 / 20",needs:.80,wants:0,savings:.20,blurb:"Save 20% first, spend the rest however you like."},
+  {name:"Aggressive saver 40 / 20 / 40",needs:.40,wants:.20,savings:.40,blurb:"FIRE-style — maximize savings, keep spending lean."},
+];
+function renderRules(income,expense,incTot,nabung){
+  const base=incTot>0?incTot:1;
+  let needs=0,wants=0;
+  expense.forEach(e=>{ if(e.locked)return;
+    if(e.cat==="needs") needs+=e.amount; else wants+=e.amount; });
+  const savings=Math.max(nabung,0);
+  const aN=needs/base, aW=wants/base, aS=savings/base;
+  const pct=x=>(x*100).toFixed(0)+"%";
+  const bar=(n,w,s)=>`<div class="rulebar"><span style="width:${n*100}%" class="seg needs"></span><span style="width:${w*100}%" class="seg wants"></span><span style="width:${s*100}%" class="seg sav"></span></div>`;
+  let html=`<div class="ruleactual">
+    <div class="rulehd">Your split <span class="mono">${pct(aN)} needs · ${pct(aW)} wants · ${pct(aS)} savings</span></div>
+    ${bar(aN,aW,aS)}
+    <div class="rulelegend"><span><i class="needs"></i>Needs</span><span><i class="wants"></i>Wants</span><span><i class="sav"></i>Savings</span></div>
+  </div>
+  <button type="button" class="rulestoggle" id="rulesToggle" aria-expanded="false">Compare to common rules <span class="chev">▸</span></button>
+  <div class="rulespresets" id="rulesPresets" hidden>`;
+  RULES.forEach(r=>{
+    const fit=Math.abs(aS-r.savings)<=0.03;
+    html+=`<div class="ruleitem ${fit?'fit':''}">
+      <div class="rulename">${r.name}${fit?' <small>≈ your savings</small>':''}</div>
+      ${bar(r.needs,r.wants,r.savings)}
+      <div class="ruleblurb">${r.blurb}</div></div>`;
+  });
+  html+=`</div>`;
+  const el=document.getElementById("rulesBody"); if(el){ el.innerHTML=html;
+    const tog=document.getElementById("rulesToggle"), pre=document.getElementById("rulesPresets");
+    if(tog&&pre) tog.addEventListener("click",()=>{
+      const open=pre.hasAttribute("hidden");
+      if(open){pre.removeAttribute("hidden"); tog.setAttribute("aria-expanded","true"); tog.classList.add("open");}
+      else{pre.setAttribute("hidden",""); tog.setAttribute("aria-expanded","false"); tog.classList.remove("open");}
+    });
+  }
+}
+
+async function save(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  const {income,expense}=collect();
+  const body={year:y,month:m,income,expense,
+    uang_sebelumnya:parse(document.getElementById("uangSeb").value),
+    salary_day:document.getElementById("salDay").value||null};
+  const f=document.getElementById("saveflag");
+  flagTxt("Saving…"); f.className="saveflag saving";   // yellow while in progress
+  try{
+    const res=await fetch("/api/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!res.ok) throw new Error("save failed");
+    cur=await res.json();
+    render(); flagTxt("Saved ✓"); f.className="saveflag ok";
+    setTimeout(()=>setDirty(false),1400);
+  }catch(err){
+    flagTxt("Save failed — retry"); f.className="saveflag fail";
+  }
+}
+
+document.getElementById("addInc").addEventListener("click",()=>{
+  document.getElementById("incRows").insertAdjacentHTML("beforeend",incRowHTML({item:"",amount:0}));
+  wire(); setDirty(true); const r=document.querySelector("#incRows .row:last-child .nameinp"); if(r)r.focus();});
+document.getElementById("addExp").addEventListener("click",()=>{
+  document.getElementById("expRows").insertAdjacentHTML("beforeend",expRowHTML({item:"",amount:0,spent:0}));
+  wire(); setDirty(true); const r=document.querySelector("#expRows .row:last-child .nameinp"); if(r)r.focus();});
+
+// --- Reusable modal helper: focus management, Escape, backdrop-click ---
+let _modalReturnFocus=null;
+function openDialog(bgId, focusId){
+  const bg=document.getElementById(bgId); if(!bg) return;
+  _modalReturnFocus=document.activeElement;
+  bg.classList.add("show");
+  document.body.style.overflow="hidden";
+  const f=focusId?document.getElementById(focusId):bg.querySelector("input,select,button");
+  if(f) setTimeout(()=>{f.focus(); if(f.select)f.select();},30);
+}
+function closeDialog(bgId){
+  const bg=document.getElementById(bgId); if(!bg) return;
+  bg.classList.remove("show");
+  document.body.style.overflow="";
+  if(_modalReturnFocus&&_modalReturnFocus.focus){_modalReturnFocus.focus(); _modalReturnFocus=null;}
+}
+// Wire backdrop-click and Escape for every modal.
+document.querySelectorAll(".modal-bg").forEach(bg=>{
+  bg.addEventListener("mousedown",e=>{ if(e.target===bg) closeDialog(bg.id); });
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ const open=document.querySelector(".modal-bg.show"); if(open) closeDialog(open.id); }
+});
+
+function openModal(){
+  const mm=document.getElementById("mAddMonth"); mm.innerHTML=MONTHS.map((n,i)=>`<option value="${i+1}">${n}</option>`).join("");
+  const my=document.getElementById("mAddYear"); let o=""; for(let y=2025;y<=2028;y++)o+=`<option value="${y}">${y}</option>`; my.innerHTML=o;
+  openDialog("modalBg","mAddMonth");
+}
+async function createPeriod(){
+  const y=document.getElementById("mAddYear").value, m=document.getElementById("mAddMonth").value;
+  const dup=document.getElementById("mDup").checked;
+  let res;
+  try{
+    res=await fetch("/api/add_period",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({year:y,month:m,duplicate:dup})});
+  }catch(e){ alert("Could not create the month. Check your connection and try again."); return; }
+  if(!res.ok){ alert("That month already exists."); return; }
+  cur=await res.json();                 // add_period returns the full derived payload
+  document.getElementById("mDup").checked=false;
+  closeDialog("modalBg");
+  // Rebuild the period dropdown (so the new month appears) without re-fetching data,
+  // then select and render the freshly created month.
+  await refreshPeriodOptions(y+"-"+m);
+  render(); setDirty(false); loadTrend();
+}
+
+// Rebuild the period <select> options and set the selected value.
+async function refreshPeriodOptions(sel){
+  let ps;
+  try{ ps=(await (await fetch("/api/periods")).json()).slice().reverse(); }catch(e){ return; }
+  const s=document.getElementById("periodSel"); s.innerHTML="";
+  ps.forEach(p=>{const o=document.createElement("option");o.value=p.year+"-"+p.month;o.textContent=p.month_name+" "+p.year;s.appendChild(o);});
+  if(sel) s.value=sel;
+}
+async function delPeriod(){
+  const [y,m]=document.getElementById("periodSel").value.split("-");
+  if(!confirm(`Delete ${MONTHS[m-1]} ${y}? This cannot be undone.`))return;
+  await fetch("/api/delete_period",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({year:y,month:m})});
+  await loadPeriods();
+}
+
+document.getElementById("periodSel").addEventListener("change",()=>{
+  if(dirty&&!confirm("Discard unsaved changes?")){loadPeriods();return;} loadData();});
+document.getElementById("saveBtn").addEventListener("click",save);
+document.getElementById("addBtn").addEventListener("click",openModal);
+
+// Sync: pull last month's full Tabungan seharusnya into Uang sebelumnya, then save.
+const syncPrevBtn=document.getElementById("syncPrev");
+if(syncPrevBtn){
+  syncPrevBtn.addEventListener("click",async()=>{
+    if(cur.prev_tabungan==null) return;
+    document.getElementById("uangSeb").value=fmt(cur.prev_tabungan);
+    syncPrevBtn.classList.remove("spin"); void syncPrevBtn.offsetWidth; syncPrevBtn.classList.add("spin");
+    setDirty(true); recalc();
+    await save();  // auto-save immediately
+  });
+}
+document.getElementById("mCancel").addEventListener("click",()=>closeDialog("modalBg"));
+document.getElementById("mClose").addEventListener("click",()=>closeDialog("modalBg"));
+document.getElementById("mCreate").addEventListener("click",createPeriod);
+document.getElementById("delBtn").addEventListener("click",delPeriod);
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
+
+// --- Edit wallets modal (comma-separated single field) ---
+const editWalletsBtn=document.getElementById("editWallets");
+if(editWalletsBtn){
+  let walBefore=[];
+  function showWalError(msg){const e=document.getElementById("walError"); e.textContent=msg; e.classList.add("show");}
+  function clearWalError(){document.getElementById("walError").classList.remove("show");}
+  editWalletsBtn.addEventListener("click",()=>{
+    walBefore=(cur&&cur.wallets_list)||[];
+    document.getElementById("walInput").value=walBefore.join(", ");
+    clearWalError();
+    openDialog("walletBg","walInput");
+  });
+  document.getElementById("walCancel").addEventListener("click",()=>closeDialog("walletBg"));
+  document.getElementById("walClose").addEventListener("click",()=>closeDialog("walletBg"));
+  async function saveWallets(){
+    const after=document.getElementById("walInput").value.split(",").map(s=>s.trim()).filter(Boolean);
+    if(!after.length){ showWalError("You need at least one wallet."); return; }
+    if(new Set(after.map(s=>s.toLowerCase())).size!==after.length){ showWalError("Wallet names must be unique."); return; }
+    const rename={};
+    if(walBefore.length===after.length) walBefore.forEach((b,i)=>{ if(b!==after[i]) rename[b]=after[i]; });
+    const [y,m]=document.getElementById("periodSel").value.split("-");
+    const r=await fetch("/api/wallets",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({wallets:after,rename,year:y,month:m})});
+    if(r.ok){ cur=await r.json(); render(); closeDialog("walletBg"); }
+    else showWalError("Could not update wallets. Try again.");
+  }
+  document.getElementById("walSaveBtn").addEventListener("click",saveWallets);
+  document.getElementById("walInput").addEventListener("keydown",e=>{ if(e.key==="Enter") saveWallets(); });
+}
+
+// --- Admin-only registration token modal ---
+const tokenLink=document.getElementById("tokenLink");
+if(tokenLink){
+  function showTokError(msg){const e=document.getElementById("tokError"); e.textContent=msg; e.classList.add("show");}
+  function clearTokError(){document.getElementById("tokError").classList.remove("show");}
+  tokenLink.addEventListener("click",async()=>{
+    let t="";
+    try{ t=(await (await fetch("/api/reg_token")).json()).token||""; }catch(_){}
+    document.getElementById("tokInput").value=t;
+    clearTokError();
+    openDialog("tokenBg","tokInput");
+  });
+  document.getElementById("tokCancel").addEventListener("click",()=>closeDialog("tokenBg"));
+  document.getElementById("tokClose").addEventListener("click",()=>closeDialog("tokenBg"));
+  async function saveToken(){
+    const next=document.getElementById("tokInput").value.trim();
+    if(next.length<3){ showTokError("Token must be at least 3 characters."); return; }
+    const r=await fetch("/api/set_reg_token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:next})});
+    if(r.ok) closeDialog("tokenBg");
+    else showTokError("Could not update the token. Try again.");
+  }
+  document.getElementById("tokSave").addEventListener("click",saveToken);
+  document.getElementById("tokInput").addEventListener("keydown",e=>{ if(e.key==="Enter") saveToken(); });
+}
+
+loadPeriods();
+
+// Rotating savings encouragement — random message every 5 seconds, offline-safe.
+(function(){
+  const el=document.getElementById("saveMsg"); if(!el||!SAVE_MESSAGES.length) return;
+  let last=-1;
+  function next(){
+    let i; do{ i=Math.floor(Math.random()*SAVE_MESSAGES.length); }while(i===last && SAVE_MESSAGES.length>1);
+    last=i;
+    el.style.opacity=0;
+    setTimeout(()=>{ el.textContent="“"+SAVE_MESSAGES[i]+"”"; el.style.opacity=1; },180);
+  }
+  next(); setInterval(next,5000);
+})();
+</script>
+</body>
+</html>

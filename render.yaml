@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: budget-bulanan
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    disk:
+      name: budget-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: BUDGET_DB
+        value: /var/data/budget.db
+      - key: BUDGET_PASSWORD
+        sync: false
+      - key: BUDGET_SECRET
+        generateValue: true
+      - key: BUDGET_MASTER
+        sync: false
